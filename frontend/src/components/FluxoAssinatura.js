@@ -1,0 +1,294 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+function FluxoAssinatura() {
+  const [cpf, setCpf] = useState('');
+  const [nome, setNome] = useState('');
+  const [autorizado, setAutorizado] = useState(false);
+  const [fotoBase64, setFotoBase64] = useState('');
+  const assinaturaCanvas = useRef(null);
+  const videoRef = useRef(null);
+  const fotoCanvas = useRef(null);
+  const [desenhando, setDesenhando] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (autorizado) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then((stream) => {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        })
+        .catch((err) => {
+          console.error('Erro ao acessar a câmera:', err);
+          alert('Não foi possível acessar a câmera.');
+        });
+    }
+  }, [autorizado]);
+
+  const capturarFoto = () => {
+    const context = fotoCanvas.current.getContext('2d');
+    context.drawImage(videoRef.current, 0, 0, 300, 200);
+    const foto = fotoCanvas.current.toDataURL('image/png');
+    setFotoBase64(foto);
+    alert('📸 Foto capturada!');
+  };
+
+  const validarCpf = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/validar-cpf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cpf })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setNome(data.nome);
+        setAutorizado(true);
+        alert(`✅ CPF válido. Bem-vindo, ${data.nome}!`);
+      } else {
+        const erro = await response.json();
+        alert(`❌ ${erro.error}`);
+      }
+    } catch (err) {
+      console.error('Erro ao validar CPF:', err);
+      alert('❌ Erro na validação do CPF.');
+    }
+  };
+
+  const limparAssinatura = () => {
+    const ctx = assinaturaCanvas.current.getContext('2d');
+    ctx.clearRect(0, 0, assinaturaCanvas.current.width, assinaturaCanvas.current.height);
+  };
+
+  const registrarAssinatura = async () => {
+    const assinaturaBase64 = assinaturaCanvas.current.toDataURL();
+
+    try {
+      const response = await fetch('http://localhost:3001/api/registrar-assinatura', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cpf,
+          foto: fotoBase64,
+          assinatura: assinaturaBase64
+        })
+      });
+
+      const responseText = await response.text();
+      console.log('Resposta bruta:', responseText);
+
+      if (response.ok) {
+        alert('✅ Assinatura registrada com sucesso!');
+        navigate('/assinar');
+      } else {
+        try {
+          const erro = JSON.parse(responseText);
+          alert(`❌ ${erro.error}`);
+        } catch {
+          alert(`❌ Erro: ${responseText}`);
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao registrar assinatura:', err);
+      alert('❌ Erro ao registrar assinatura.');
+    }
+  };
+
+  const iniciarDesenho = (e) => {
+    e.preventDefault();
+    setDesenhando(true);
+    const ctx = assinaturaCanvas.current.getContext('2d');
+    ctx.beginPath();
+  };
+
+  const pararDesenho = (e) => {
+    e.preventDefault();
+    setDesenhando(false);
+  };
+
+  const desenhar = (e) => {
+    if (!desenhando) return;
+
+    const ctx = assinaturaCanvas.current.getContext('2d');
+    const rect = assinaturaCanvas.current.getBoundingClientRect();
+
+    let x, y;
+    if (e.touches) {
+      x = e.touches[0].clientX - rect.left;
+      y = e.touches[0].clientY - rect.top;
+    } else {
+      x = e.clientX - rect.left;
+      y = e.clientY - rect.top;
+    }
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+
+  return (
+    <div style={styles.container}>
+      <button onClick={() => navigate('/')} style={styles.voltar}>Voltar</button>
+      {!autorizado ? (
+        <div style={styles.card}>
+          <h2>Digite seu CPF:</h2>
+          <input
+            style={styles.input}
+            type="text"
+            value={cpf}
+            onChange={(e) => setCpf(e.target.value)}
+            placeholder="Digite seu CPF"
+          />
+          <button style={styles.button} onClick={validarCpf}>Validar CPF</button>
+        </div>
+      ) : (
+        <div style={styles.card}>
+          <h3 style={styles.titulo}>Bem-vindo, {nome}!</h3>
+
+          <div style={styles.cameraContainer}>
+            <div style={styles.camera}>
+              <h4>Câmera:</h4>
+              <video ref={videoRef} style={styles.video} autoPlay></video>
+              <button style={styles.buttonCapitura} onClick={capturarFoto}>Capturar Foto</button>
+            </div>
+
+            <div style={styles.camera}>
+              <h4>Foto Capturada:</h4>
+              <canvas ref={fotoCanvas} width={300} height={200} style={styles.canvasPreview}></canvas>
+            </div>
+          </div>
+
+          <h4>Assinatura:</h4>
+          <canvas
+            ref={assinaturaCanvas}
+            width={300}
+            height={200}
+            style={styles.assinatura}
+            onMouseDown={iniciarDesenho}
+            onMouseUp={pararDesenho}
+            onMouseMove={desenhar}
+            onTouchStart={iniciarDesenho}
+            onTouchEnd={pararDesenho}
+            onTouchMove={desenhar}
+          ></canvas>
+
+          <div style={styles.buttonsRow}>
+            <button style={styles.limpar} onClick={limparAssinatura}>Limpar</button>
+            <button
+              style={styles.button}
+              onClick={registrarAssinatura}
+              disabled={!fotoBase64}
+            >
+              Registrar Assinatura
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default FluxoAssinatura;
+
+const styles = {
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '20px',
+  },
+  card: {
+    maxWidth: '600px',
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '15px',
+    alignItems: 'center',
+  },
+  input: {
+    width: '100%',
+    height: '40px',
+    padding: '10px',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    fontSize: '16px',
+  },
+  button: {
+    width: '100%',
+    padding: '10px',
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '16px',
+    cursor: 'pointer',
+  },
+  limpar: {
+    width: '100%',
+    padding: '10px',
+    backgroundColor: 'goldenrod',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '16px',
+    cursor: 'pointer',
+  },
+  cameraContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+    width: '100%',
+  },
+  camera: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  video: {
+    width: '300px',
+    height: '200px',
+    borderRadius: '8px',
+    border: '1px solid #ccc',
+  },
+  assinatura: {
+    width: '100%',
+    maxWidth: '300px',
+    height: '200px',
+    border: '1px dotted black',
+    cursor: 'crosshair',
+  },
+  buttonsRow: {
+    display: 'flex',
+    gap: '10px',
+    width: '100%',
+  },
+  titulo: {
+    fontSize: '20px',
+    marginBottom: '10px',
+    backgroundColor: '#64d964',
+    borderRadius: '5px',
+    padding: '10px',
+    textAlign: 'center',
+  },
+  voltar: {
+    position: 'absolute',
+    top: '10px',
+    left: '10px',
+    padding: '10px',
+    fontSize: '14px',
+    cursor: 'pointer',
+    border:'none'
+  },
+  buttonCapitura:{
+    with:'100%',
+    margin: '10px',
+    padding: '10px',
+    backgroundColor: 'grey',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '16px',
+    cursor: 'pointer',
+  }
+};
