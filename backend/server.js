@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const sql = require('mssql');
 const multer = require('multer');
 const xlsx = require('xlsx');
+const cors = require('cors');
 
 const app = express();
 const PORT = 3001;
@@ -10,6 +11,8 @@ const PORT = 3001;
 app.use(bodyParser.json({ limit: '20mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '20mb' }));
 const upload = multer();
+app.use(cors()); 
+app.use(bodyParser.json());
 
 const config = {
   user: 'sa',
@@ -57,6 +60,9 @@ app.post('/api/upload-excel', upload.single('arquivo'), async (req, res) => {
     });
 
     const pool = await sql.connect(config);
+    await pool.request().query('DELETE FROM Pessoas');
+    await pool.request().query('DELETE FROM Assinaturas');
+
     const validRows = [];
 
     for (let row of normalizedData) {
@@ -65,17 +71,11 @@ app.post('/api/upload-excel', upload.single('arquivo'), async (req, res) => {
 
       if (!nome || !cpf || !validarCPF(cpf)) continue;
 
-      const existing = await pool.request()
-        .input('cpf', sql.NVarChar, cpf)
-        .query('SELECT Id FROM Pessoas WHERE CPF = @cpf');
-
-      if (existing.recordset.length > 0) continue;
-
       validRows.push({ nome, cpf });
     }
 
     if (validRows.length === 0) {
-      return res.status(400).json({ error: 'Nenhum dado válido e único para inserir.' });
+      return res.status(400).json({ error: 'Nenhum dado válido para inserir.' });
     }
 
     const table = new sql.Table('Pessoas');
@@ -87,6 +87,7 @@ app.post('/api/upload-excel', upload.single('arquivo'), async (req, res) => {
     });
 
     await pool.request().bulk(table);
+
     res.status(200).json({ message: `${validRows.length} registros inseridos com sucesso!` });
 
   } catch (err) {
@@ -94,6 +95,7 @@ app.post('/api/upload-excel', upload.single('arquivo'), async (req, res) => {
     res.status(500).json({ error: 'Erro ao processar o arquivo.' });
   }
 });
+
 
 // ➡️ Listagem com busca e paginação
 app.get('/api/pessoas', async (req, res) => {
@@ -267,27 +269,47 @@ app.post('/api/registrar-assinatura', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Servidor rodando em http://0.0.0.0:${PORT}`);
+});
 
+// ➡️ Listar assinaturas (Imagens em base64)
 // ➡️ Listar assinaturas (Imagens em base64)
 app.get('/api/assinaturas', async (req, res) => {
   try {
     const pool = await sql.connect(config);
 
     const result = await pool.request().query(`
-      SELECT Id, Nome, CPF, Foto, Assinatura
-      FROM Assinaturas
-      ORDER BY Id DESC
+      SELECT p.Id, a.Assinatura, a.DataAssinatura, p.Nome, p.CPF
+      FROM Pessoas p LEFT JOIN Assinaturas a ON a.CPF = p.CPF
+      ORDER BY p.Id DESC
     `);
 
-    // Se as imagens estiverem armazenadas como VARBINARY, converta para base64:
-    const assinaturas = result.recordset.map(assinatura => ({
-      Id: assinatura.Id,
-      Nome: assinatura.Nome,
-      CPF: assinatura.CPF,
-      Foto: assinatura.Foto,  
-      Assinatura: assinatura.Assinatura 
-    }));
+    const assinaturas = result.recordset.map(assinatura => {
+      let dataFormatada = 'Data não registrada';
+
+      if (assinatura.DataAssinatura) {
+        const data = new Date(assinatura.DataAssinatura);
+        const dia = String(data.getDate()).padStart(2, '0');
+        const mes = String(data.getMonth() + 1).padStart(2, '0');
+        const ano = data.getFullYear();
+        const hora = String(data.getHours()).padStart(2, '0');
+        const min = String(data.getMinutes()).padStart(2, '0');
+        const seg = String(data.getSeconds()).padStart(2, '0');
+
+        dataFormatada = `${dia}/${mes}/${ano} ${hora}:${min}:${seg}`;
+      }
+
+      const assinaturaStatus = assinatura.Assinatura ? assinatura.Assinatura : 'Não assinado';
+
+      return {
+        Id: assinatura.Id,
+        Nome: assinatura.Nome,
+        CPF: assinatura.CPF,
+        Data: dataFormatada,
+        Assinatura: assinaturaStatus
+      };
+    });
 
     res.status(200).json({ data: assinaturas });
 
@@ -296,3 +318,4 @@ app.get('/api/assinaturas', async (req, res) => {
     res.status(500).json({ error: 'Erro no servidor ao buscar assinaturas.' });
   }
 });
+

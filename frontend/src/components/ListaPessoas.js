@@ -7,7 +7,7 @@ const ListaPessoas = () => {
   const [cpf, setCpf] = useState('');
 
   const fetchPessoas = () => {
-    fetch('http://localhost:3001/api/pessoas')
+    fetch('http://172.16.4.221:3001/api/pessoas')
       .then(res => res.json())
       .then(data => setPessoas(data.data))
       .catch(err => console.error('Erro ao buscar pessoas:', err));
@@ -20,7 +20,7 @@ const ListaPessoas = () => {
   const excluirPessoa = (id) => {
     if (!window.confirm('Tem certeza que deseja excluir esta pessoa?')) return;
 
-    fetch(`http://localhost:3001/api/pessoas/${id}`, { method: 'DELETE' })
+    fetch(`http://172.16.4.221:3001/api/pessoas/${id}`, { method: 'DELETE' })
       .then(res => {
         if (res.ok) {
           fetchPessoas();

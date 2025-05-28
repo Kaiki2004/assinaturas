@@ -1,18 +1,18 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function FluxoAssinatura() {
   const [cpf, setCpf] = useState('');
   const [nome, setNome] = useState('');
   const [autorizado, setAutorizado] = useState(false);
-  const [fotoBase64, setFotoBase64] = useState('');
+  //const [fotoBase64, setFotoBase64] = useState('');
   const assinaturaCanvas = useRef(null);
-  const videoRef = useRef(null);
-  const fotoCanvas = useRef(null);
+  //const videoRef = useRef(null);
+  //const fotoCanvas = useRef(null);
   const [desenhando, setDesenhando] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  /*useEffect(() => {
     if (autorizado) {
       navigator.mediaDevices.getUserMedia({ video: true })
         .then((stream) => {
@@ -24,19 +24,19 @@ function FluxoAssinatura() {
           alert('Não foi possível acessar a câmera.');
         });
     }
-  }, [autorizado]);
+  }, [autorizado]);*/
 
-  const capturarFoto = () => {
+  /*const capturarFoto = () => {
     const context = fotoCanvas.current.getContext('2d');
     context.drawImage(videoRef.current, 0, 0, 300, 200);
     const foto = fotoCanvas.current.toDataURL('image/png');
     setFotoBase64(foto);
     alert('📸 Foto capturada!');
-  };
+  };*/
 
   const validarCpf = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/validar-cpf', {
+      const response = await fetch('http://172.16.4.221:3001/api/validar-cpf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cpf })
@@ -66,12 +66,11 @@ function FluxoAssinatura() {
     const assinaturaBase64 = assinaturaCanvas.current.toDataURL();
 
     try {
-      const response = await fetch('http://localhost:3001/api/registrar-assinatura', {
+      const response = await fetch('http://172.16.4.221:3001/api/registrar-assinatura', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cpf,
-          foto: fotoBase64,
           assinatura: assinaturaBase64
         })
       });
@@ -80,12 +79,14 @@ function FluxoAssinatura() {
       console.log('Resposta bruta:', responseText);
 
       if (response.ok) {
-        alert('✅ Assinatura registrada com sucesso!');
-        navigate('/assinar');
+        alert('✅ Assinatura registrada com sucesso! 🎉\nCesta Liberada!');
+        window.location.reload();  // recarrega a página
       } else {
         try {
           const erro = JSON.parse(responseText);
           alert(`❌ ${erro.error}`);
+          window.location.reload();  // recarrega a página
+
         } catch {
           alert(`❌ Erro: ${responseText}`);
         }
@@ -95,6 +96,7 @@ function FluxoAssinatura() {
       alert('❌ Erro ao registrar assinatura.');
     }
   };
+
 
   const iniciarDesenho = (e) => {
     e.preventDefault();
@@ -127,9 +129,13 @@ function FluxoAssinatura() {
     ctx.stroke();
   };
 
+  const handleSair = () => {
+    navigate('/');
+  };
+
   return (
     <div style={styles.container}>
-      <button onClick={() => navigate('/')} style={styles.voltar}>Voltar</button>
+      <a href='/' style={styles.voltar} onClick={handleSair}>Voltar</a>
       {!autorizado ? (
         <div style={styles.card}>
           <h2>Digite seu CPF:</h2>
@@ -145,19 +151,6 @@ function FluxoAssinatura() {
       ) : (
         <div style={styles.card}>
           <h3 style={styles.titulo}>Bem-vindo, {nome}!</h3>
-
-          <div style={styles.cameraContainer}>
-            <div style={styles.camera}>
-              <h4>Câmera:</h4>
-              <video ref={videoRef} style={styles.video} autoPlay></video>
-              <button style={styles.buttonCapitura} onClick={capturarFoto}>Capturar Foto</button>
-            </div>
-
-            <div style={styles.camera}>
-              <h4>Foto Capturada:</h4>
-              <canvas ref={fotoCanvas} width={300} height={200} style={styles.canvasPreview}></canvas>
-            </div>
-          </div>
 
           <h4>Assinatura:</h4>
           <canvas
@@ -178,7 +171,7 @@ function FluxoAssinatura() {
             <button
               style={styles.button}
               onClick={registrarAssinatura}
-              disabled={!fotoBase64}
+            //disabled={!fotoBase64}
             >
               Registrar Assinatura
             </button>
@@ -273,15 +266,18 @@ const styles = {
   },
   voltar: {
     position: 'absolute',
+    backgroundColor: 'none',
+    color: 'black',
+    textDecoration: 'none',
     top: '10px',
     left: '10px',
     padding: '10px',
     fontSize: '14px',
     cursor: 'pointer',
-    border:'none'
+    border: 'none'
   },
-  buttonCapitura:{
-    with:'100%',
+  buttonCapitura: {
+    with: '100%',
     margin: '10px',
     padding: '10px',
     backgroundColor: 'grey',
