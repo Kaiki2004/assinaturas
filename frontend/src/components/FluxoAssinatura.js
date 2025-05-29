@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 function FluxoAssinatura() {
   const [cpf, setCpf] = useState('');
@@ -21,26 +22,31 @@ function FluxoAssinatura() {
         })
         .catch((err) => {
           console.error('Erro ao acessar a câmera:', err);
-          alert('Não foi possível acessar a câmera.');
+          Swal.fire({
+            icon: 'error',
+            title: 'Erro na Câmera',
+            text: 'Não foi possível acessar a câmera.',
+          });
+
         });
     }
   }, [autorizado]);
 
   useEffect(() => {
-  const canvas = assinaturaCanvas.current;
-  if (!canvas) return;
+    const canvas = assinaturaCanvas.current;
+    if (!canvas) return;
 
-  const handleTouchMove = (e) => e.preventDefault();
-  const handleTouchStart = (e) => e.preventDefault();
+    const handleTouchMove = (e) => e.preventDefault();
+    const handleTouchStart = (e) => e.preventDefault();
 
-  canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-  canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
 
-  return () => {
-    canvas.removeEventListener('touchmove', handleTouchMove);
-    canvas.removeEventListener('touchstart', handleTouchStart);
-  };
-}, []);
+    return () => {
+      canvas.removeEventListener('touchmove', handleTouchMove);
+      canvas.removeEventListener('touchstart', handleTouchStart);
+    };
+  }, []);
 
 
   const capturarFoto = () => {
@@ -48,7 +54,13 @@ function FluxoAssinatura() {
     context.drawImage(videoRef.current, 0, 0, 300, 200);
     const foto = fotoCanvas.current.toDataURL('image/png');
     setFotoBase64(foto);
-    alert('📸 Foto capturada!');
+    Swal.fire({
+      icon: 'success',
+      title: 'Foto capturada!',
+      showConfirmButton: false,
+      timer: 1500
+    });
+
   };
 
   const validarCpf = async () => {
@@ -63,10 +75,22 @@ function FluxoAssinatura() {
         const data = await response.json();
         setNome(data.nome);
         setAutorizado(true);
-        alert(`✅ CPF válido. Bem-vindo, ${data.nome}!`);
+        Swal.fire({
+          icon: 'success',
+          title: `CPF válido`,
+          text: `Bem-vindo, ${data.nome}!`,
+          confirmButtonColor: '#4CAF50'
+        });
+
       } else {
         const erro = await response.json();
-        alert(`❌ ${erro.error}`);
+        Swal.fire({
+          icon: 'error',
+          title: 'CPF Inválido',
+          text: erro.error || 'CPF não autorizado',
+          confirmButtonColor: '#d33'
+        });
+
       }
     } catch (err) {
       console.error('Erro ao validar CPF:', err);
@@ -96,7 +120,13 @@ function FluxoAssinatura() {
       console.log('Resposta bruta:', responseText);
 
       if (response.ok) {
-        alert('✅ Assinatura registrada com sucesso! 🎉\nCesta Liberada!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Assinatura registrada com sucesso! 🎉',
+          text: 'Cesta liberada!',
+          confirmButtonColor: '#4CAF50'
+        }).then(() => window.location.reload());
+
         window.location.reload();  // recarrega a página
       } else {
         try {
@@ -110,7 +140,12 @@ function FluxoAssinatura() {
       }
     } catch (err) {
       console.error('Erro ao registrar assinatura:', err);
-      alert('❌ Erro ao registrar assinatura.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao registrar assinatura.',
+      });
+
     }
   };
 
