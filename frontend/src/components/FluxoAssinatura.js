@@ -185,11 +185,6 @@ function FluxoAssinatura() {
     navigate('/');
   };
 
-  const limparFoto = () => {
-    const ctx = fotoCanvas.current.getContext('2d');
-    ctx.clearRect(0, 0, fotoCanvas.current.width, fotoCanvas.current.height);
-  };
-
   return (
     <div style={styles.container}>
       <a href='/' style={styles.voltar} onClick={handleSair}>Voltar</a>
