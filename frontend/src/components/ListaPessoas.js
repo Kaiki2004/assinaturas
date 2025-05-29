@@ -31,25 +31,25 @@ const ListaPessoas = () => {
       .catch(err => console.error('Erro ao excluir pessoa:', err));
   };
 
-  const adicionarPessoa = (e) => {
-    e.preventDefault();
+const adicionarPessoa = (e) => {
+  e.preventDefault();
 
-    fetch('http://localhost:3001/api/pessoas', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, cpf })
+  fetch('http://172.16.4.221:3001/api/pessoas', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nome, cpf })
+  })
+    .then(res => {
+      if (res.ok) {
+        setNome('');
+        setCpf('');
+        fetchPessoas();  // atualiza a lista corretamente
+      } else {
+        res.json().then(data => alert(data.error || 'Erro ao adicionar pessoa'));
+      }
     })
-      .then(res => {
-        if (res.ok) {
-          setNome('');
-          setCpf('');
-          fetchPessoas();
-        } else {
-          res.json().then(data => alert(data.error || 'Erro ao adicionar pessoa'));
-        }
-      })
-      .catch(err => console.error('Erro ao adicionar pessoa:', err));
-  };
+    .catch(err => console.error('Erro ao adicionar pessoa:', err));
+};
 
   return (
     <div>
@@ -148,11 +148,15 @@ const styles = {
     cursor: 'pointer'
   },
   tableContainer: {
-    overflowX: 'auto'
+    overflowX: 'auto',
+    mostreOScroller: true
+
   },
   table: {
     borderCollapse: 'collapse',
     width: '100%',
-    minWidth: '500px'
+    minWidth: '500px',
+    mostreOScroller: true
+
   }
 };

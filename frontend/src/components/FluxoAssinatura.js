@@ -1,18 +1,18 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function FluxoAssinatura() {
   const [cpf, setCpf] = useState('');
   const [nome, setNome] = useState('');
   const [autorizado, setAutorizado] = useState(false);
-  //const [fotoBase64, setFotoBase64] = useState('');
+  const [fotoBase64, setFotoBase64] = useState('');
   const assinaturaCanvas = useRef(null);
-  //const videoRef = useRef(null);
-  //const fotoCanvas = useRef(null);
+  const videoRef = useRef(null);
+  const fotoCanvas = useRef(null);
   const [desenhando, setDesenhando] = useState(false);
   const navigate = useNavigate();
 
-  /*useEffect(() => {
+  useEffect(() => {
     if (autorizado) {
       navigator.mediaDevices.getUserMedia({ video: true })
         .then((stream) => {
@@ -24,15 +24,32 @@ function FluxoAssinatura() {
           alert('Não foi possível acessar a câmera.');
         });
     }
-  }, [autorizado]);*/
+  }, [autorizado]);
 
-  /*const capturarFoto = () => {
+  useEffect(() => {
+  const canvas = assinaturaCanvas.current;
+  if (!canvas) return;
+
+  const handleTouchMove = (e) => e.preventDefault();
+  const handleTouchStart = (e) => e.preventDefault();
+
+  canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+  canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+
+  return () => {
+    canvas.removeEventListener('touchmove', handleTouchMove);
+    canvas.removeEventListener('touchstart', handleTouchStart);
+  };
+}, []);
+
+
+  const capturarFoto = () => {
     const context = fotoCanvas.current.getContext('2d');
     context.drawImage(videoRef.current, 0, 0, 300, 200);
     const foto = fotoCanvas.current.toDataURL('image/png');
     setFotoBase64(foto);
     alert('📸 Foto capturada!');
-  };*/
+  };
 
   const validarCpf = async () => {
     try {
@@ -133,6 +150,11 @@ function FluxoAssinatura() {
     navigate('/');
   };
 
+  const limparFoto = () => {
+    const ctx = fotoCanvas.current.getContext('2d');
+    ctx.clearRect(0, 0, fotoCanvas.current.width, fotoCanvas.current.height);
+  };
+
   return (
     <div style={styles.container}>
       <a href='/' style={styles.voltar} onClick={handleSair}>Voltar</a>
@@ -152,11 +174,40 @@ function FluxoAssinatura() {
         <div style={styles.card}>
           <h3 style={styles.titulo}>Bem-vindo, {nome}!</h3>
 
+          <h4>Foto:</h4>
+          <video
+            ref={videoRef}
+            width="500"
+            height="400"
+            autoPlay
+            muted
+            playsInline
+            style={styles.video}
+          />
+
+          <canvas
+            ref={fotoCanvas}
+            width={300}
+            height={200}
+            style={{ display: 'none' }}
+          />
+
+
+          <div style={styles.buttonsRow}>
+            <button style={styles.button} onClick={capturarFoto}>Capturar Foto</button>
+          </div>
+
+          {fotoBase64 && (
+            <div style={styles.cameraContainer}>
+              <img src={fotoBase64} alt="Foto Capturada" style={styles.fotoPreview} />
+            </div>
+          )}
+
           <h4>Assinatura:</h4>
           <canvas
             ref={assinaturaCanvas}
-            width={300}
-            height={200}
+            width={600}
+            height={250}
             style={styles.assinatura}
             onMouseDown={iniciarDesenho}
             onMouseUp={pararDesenho}
@@ -171,7 +222,7 @@ function FluxoAssinatura() {
             <button
               style={styles.button}
               onClick={registrarAssinatura}
-            //disabled={!fotoBase64}
+              disabled={!fotoBase64}
             >
               Registrar Assinatura
             </button>
@@ -239,15 +290,15 @@ const styles = {
     alignItems: 'center',
   },
   video: {
-    width: '300px',
-    height: '200px',
+    width: '500px',
+    height: '250px',
     borderRadius: '8px',
     border: '1px solid #ccc',
   },
   assinatura: {
     width: '100%',
-    maxWidth: '300px',
-    height: '200px',
+    maxWidth: '700px',
+    height: '250px',
     border: '1px dotted black',
     cursor: 'crosshair',
   },
@@ -277,6 +328,17 @@ const styles = {
     border: 'none'
   },
   buttonCapitura: {
+    with: '100%',
+    margin: '10px',
+    padding: '10px',
+    backgroundColor: 'grey',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '16px',
+    cursor: 'pointer',
+  },
+  fotoPreview: {
     with: '100%',
     margin: '10px',
     padding: '10px',

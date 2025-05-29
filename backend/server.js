@@ -274,13 +274,12 @@ app.listen(PORT, '0.0.0.0', () => {
 });
 
 // ➡️ Listar assinaturas (Imagens em base64)
-// ➡️ Listar assinaturas (Imagens em base64)
 app.get('/api/assinaturas', async (req, res) => {
   try {
     const pool = await sql.connect(config);
 
     const result = await pool.request().query(`
-      SELECT p.Id, a.Assinatura, a.DataAssinatura, p.Nome, p.CPF
+      SELECT p.Id, a.Assinatura,a.Foto, a.DataAssinatura, p.Nome, p.CPF
       FROM Pessoas p LEFT JOIN Assinaturas a ON a.CPF = p.CPF
       ORDER BY p.Id DESC
     `);
@@ -307,7 +306,8 @@ app.get('/api/assinaturas', async (req, res) => {
         Nome: assinatura.Nome,
         CPF: assinatura.CPF,
         Data: dataFormatada,
-        Assinatura: assinaturaStatus
+        Assinatura: assinaturaStatus,
+        Foto: assinatura.Foto
       };
     });
 
