@@ -54,7 +54,7 @@ app.post('/api/upload-excel', upload.single('arquivo'), async (req, res) => {
     const normalizedData = jsonData.map(row => {
       const newRow = {};
       Object.keys(row).forEach(key => {
-        newRow[key.toLowerCase()] = row[key];
+        newRow[key.toLowerCase()] = row[key];  // ↓ normaliza tudo para lowercase
       });
       return newRow;
     });
@@ -68,10 +68,13 @@ app.post('/api/upload-excel', upload.single('arquivo'), async (req, res) => {
     for (let row of normalizedData) {
       const nome = row.nome ? String(row.nome).toUpperCase().trim() : null;
       const cpf = row.cpf ? String(row.cpf).trim() : null;
+      const empresa = row.emp ? String(row.emp).toUpperCase().trim() : null;
+      const matricula = row.cod ? String(row.cod).toUpperCase().trim() : null;
+      const status = row.cesta ? String(row.cesta).toUpperCase().trim() : null;
 
       if (!nome || !cpf || !validarCPF(cpf)) continue;
 
-      validRows.push({ nome, cpf });
+      validRows.push({ nome, cpf, empresa, matricula, status });
     }
 
     if (validRows.length === 0) {
@@ -81,9 +84,12 @@ app.post('/api/upload-excel', upload.single('arquivo'), async (req, res) => {
     const table = new sql.Table('Pessoas');
     table.columns.add('Nome', sql.NVarChar(100));
     table.columns.add('CPF', sql.NVarChar(20));
+    table.columns.add('empresa', sql.NVarChar(100));
+    table.columns.add('matricula', sql.NVarChar(100));
+    table.columns.add('status', sql.NVarChar(100));
 
     validRows.forEach(row => {
-      table.rows.add(row.nome, row.cpf);
+      table.rows.add(row.nome, row.cpf, row.empresa, row.matricula, row.status);
     });
 
     await pool.request().bulk(table);
@@ -91,10 +97,11 @@ app.post('/api/upload-excel', upload.single('arquivo'), async (req, res) => {
     res.status(200).json({ message: `${validRows.length} registros inseridos com sucesso!` });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erro ao processar o arquivo.' });
+    console.error('Erro ao processar Excel:', err);
+    res.status(500).json({ error: 'Erro ao processar o arquivo Excel.' });
   }
 });
+
 
 
 // ➡️ Listagem com busca e paginação
@@ -127,7 +134,7 @@ app.get('/api/pessoas', async (req, res) => {
 
 // ➡️ Adicionar pessoa
 app.post('/api/pessoas', async (req, res) => {
-  let { nome, cpf } = req.body;
+  let { nome, cpf, empresa, matricula, situacao } = req.body;
 
   if (!validarCPF(cpf)) return res.status(400).json({ error: 'CPF inválido.' });
 
@@ -146,7 +153,11 @@ app.post('/api/pessoas', async (req, res) => {
     await pool.request()
       .input('nome', sql.NVarChar, nome)
       .input('cpf', sql.NVarChar, cpf)
-      .query('INSERT INTO Pessoas (Nome, CPF) VALUES (@nome, @cpf)');
+      .input('empresa', sql.NVarChar, empresa)
+      .input('matricula', sql.NVarChar, matricula)
+      .input('status', sql.NVarChar, situacao)
+
+      .query('INSERT INTO Pessoas (Nome, CPF, empresa, matricula, status) VALUES (@nome, @cpf, @empresa, @matricula, @status)');
 
     res.status(201).json({ message: 'Pessoa adicionada!' });
 

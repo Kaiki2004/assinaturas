@@ -14,7 +14,7 @@ function FluxoAssinatura() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (autorizado) {
+    if (autorizado && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ video: true })
         .then((stream) => {
           videoRef.current.srcObject = stream;
@@ -27,26 +27,32 @@ function FluxoAssinatura() {
             title: 'Erro na Câmera',
             text: 'Não foi possível acessar a câmera.',
           });
-
         });
+    } else if (autorizado) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Navegador incompatível',
+        text: 'Seu navegador não suporta acesso à câmera neste ambiente.',
+      });
     }
   }, [autorizado]);
+
 
   useEffect(() => {
     const canvas = assinaturaCanvas.current;
     if (!canvas) return;
 
-    const handleTouchMove = (e) => e.preventDefault();
-    const handleTouchStart = (e) => e.preventDefault();
-
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    const bloquearScroll = (e) => {
+      e.preventDefault();
+    };
 
     return () => {
-      canvas.removeEventListener('touchmove', handleTouchMove);
-      canvas.removeEventListener('touchstart', handleTouchStart);
+      canvas.removeEventListener('touchstart', bloquearScroll);
+      canvas.removeEventListener('touchmove', bloquearScroll);
+      canvas.removeEventListener('touchend', bloquearScroll);
     };
   }, []);
+
 
 
   const capturarFoto = () => {
@@ -112,7 +118,8 @@ function FluxoAssinatura() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cpf,
-          assinatura: assinaturaBase64
+          assinatura: assinaturaBase64,
+          foto: fotoBase64 // ← agora enviamos também a foto
         })
       });
 
@@ -126,14 +133,11 @@ function FluxoAssinatura() {
           text: 'Cesta liberada!',
           confirmButtonColor: '#4CAF50'
         }).then(() => window.location.reload());
-
-        window.location.reload();  // recarrega a página
       } else {
         try {
           const erro = JSON.parse(responseText);
           alert(`❌ ${erro.error}`);
-          window.location.reload();  // recarrega a página
-
+          window.location.reload();
         } catch {
           alert(`❌ Erro: ${responseText}`);
         }
@@ -145,7 +149,6 @@ function FluxoAssinatura() {
         title: 'Erro',
         text: 'Erro ao registrar assinatura.',
       });
-
     }
   };
 
@@ -155,12 +158,29 @@ function FluxoAssinatura() {
     setDesenhando(true);
     const ctx = assinaturaCanvas.current.getContext('2d');
     ctx.beginPath();
+
+    // Bloqueia o scroll da tela durante o desenho
+    document.body.style.overflow = 'hidden';
+
+    // Bloqueia movimento de rolagem por touch no celular
+    document.addEventListener('touchmove', impedirScroll, { passive: false });
   };
 
   const pararDesenho = (e) => {
     e.preventDefault();
     setDesenhando(false);
+
+    // Libera o scroll da tela após o desenho
+    document.body.style.overflow = '';
+
+    // Remove o bloqueio de touchmove
+    document.removeEventListener('touchmove', impedirScroll);
   };
+
+  const impedirScroll = (e) => {
+    e.preventDefault();
+  };
+
 
   const desenhar = (e) => {
     if (!desenhando) return;
@@ -271,6 +291,8 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     padding: '20px',
+    overflowY: 'auto',
+    maxHeight: '100vh', 
   },
   card: {
     maxWidth: '600px',
