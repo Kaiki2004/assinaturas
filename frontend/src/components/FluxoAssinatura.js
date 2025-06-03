@@ -11,7 +11,10 @@ function FluxoAssinatura() {
   const videoRef = useRef(null);
   const fotoCanvas = useRef(null);
   const [desenhando, setDesenhando] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
+
+  const [assinaturas, setAssinaturas] = useState(false);
 
   useEffect(() => {
     if (autorizado && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -119,7 +122,7 @@ function FluxoAssinatura() {
         body: JSON.stringify({
           cpf,
           assinatura: assinaturaBase64,
-          foto: fotoBase64 // ← agora enviamos também a foto
+          foto: fotoBase64 
         })
       });
 
@@ -152,7 +155,9 @@ function FluxoAssinatura() {
     }
   };
 
-
+  const impedirScroll = (e) => {
+    e.preventDefault();
+  };
   const iniciarDesenho = (e) => {
     e.preventDefault();
     setDesenhando(true);
@@ -160,10 +165,11 @@ function FluxoAssinatura() {
     ctx.beginPath();
 
     // Bloqueia o scroll da tela durante o desenho
-    document.body.style.overflow = 'hidden';
+    //document.body.style.overflow = 'hidden';
 
     // Bloqueia movimento de rolagem por touch no celular
     document.addEventListener('touchmove', impedirScroll, { passive: false });
+
   };
 
   const pararDesenho = (e) => {
@@ -177,9 +183,7 @@ function FluxoAssinatura() {
     document.removeEventListener('touchmove', impedirScroll);
   };
 
-  const impedirScroll = (e) => {
-    e.preventDefault();
-  };
+
 
 
   const desenhar = (e) => {
@@ -244,7 +248,7 @@ function FluxoAssinatura() {
 
 
           <div style={styles.buttonsRow}>
-            <button style={styles.button} onClick={capturarFoto}>Capturar Foto</button>
+            <button style={styles.button} onClick={() => {capturarFoto(); setAssinaturas(true);}}>Capturar Foto</button>
           </div>
 
           {fotoBase64 && (
@@ -252,31 +256,43 @@ function FluxoAssinatura() {
               <img src={fotoBase64} alt="Foto Capturada" style={styles.fotoPreview} />
             </div>
           )}
+          {showModal && (
+            <>
+              <div style={styles.showModal}>
+                
+                <div>
+                  <div  >
+                    <h4 style={{display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center'}}>ASSINATURA:</h4>
+                    <div >
+                      <canvas
+                        ref={assinaturaCanvas}
+                        style={styles.canvas}
+                        onMouseDown={iniciarDesenho}
+                        onMouseUp={pararDesenho}
+                        onMouseMove={desenhar}
+                        onTouchStart={iniciarDesenho}
+                        onTouchEnd={pararDesenho}
+                        onTouchMove={desenhar}
+                      ></canvas>
+                    </div>
+                  </div>
+                  <div style={styles.buttonsRow}>
+                    <button style={styles.limpar} onClick={limparAssinatura}>Limpar</button>
+                    <button
+                      style={styles.button}
+                      onClick={() => {registrarAssinatura(); setShowModal(false)}}
+                      //disabled={!fotoBase64}
+                    >
+                      Registrar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
 
-          <h4>Assinatura:</h4>
-          <canvas
-            ref={assinaturaCanvas}
-            width={600}
-            height={250}
-            style={styles.assinatura}
-            onMouseDown={iniciarDesenho}
-            onMouseUp={pararDesenho}
-            onMouseMove={desenhar}
-            onTouchStart={iniciarDesenho}
-            onTouchEnd={pararDesenho}
-            onTouchMove={desenhar}
-          ></canvas>
+          { assinaturas && <button id='assinar' style={styles.button} onClick={() => setShowModal(true)}>Assinar</button>}
 
-          <div style={styles.buttonsRow}>
-            <button style={styles.limpar} onClick={limparAssinatura}>Limpar</button>
-            <button
-              style={styles.button}
-              onClick={registrarAssinatura}
-              disabled={!fotoBase64}
-            >
-              Registrar Assinatura
-            </button>
-          </div>
         </div>
       )}
     </div>
@@ -292,7 +308,7 @@ const styles = {
     alignItems: 'center',
     padding: '20px',
     overflowY: 'auto',
-    maxHeight: '100vh', 
+    maxHeight: '100vh',
   },
   card: {
     maxWidth: '600px',
@@ -312,6 +328,7 @@ const styles = {
   },
   button: {
     width: '100%',
+    height: '40px',
     padding: '10px',
     backgroundColor: '#4CAF50',
     color: 'white',
@@ -344,14 +361,15 @@ const styles = {
   video: {
     width: '500px',
     height: '250px',
+    width: '100%',
     borderRadius: '8px',
     border: '1px solid #ccc',
   },
-  assinatura: {
+  
+  canvas: {
     width: '100%',
-    maxWidth: '700px',
-    height: '250px',
-    border: '1px dotted black',
+    height: '100%',
+    border: '1px solid black',
     cursor: 'crosshair',
   },
   buttonsRow: {
@@ -400,5 +418,17 @@ const styles = {
     borderRadius: '4px',
     fontSize: '16px',
     cursor: 'pointer',
+  },
+  showModal: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'white',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999
   }
 };

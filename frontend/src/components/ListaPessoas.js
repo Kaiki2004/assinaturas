@@ -9,8 +9,6 @@ const ListaPessoas = () => {
   const [matricula, setMatricula] = useState('');
   const [situacao, setStatus] = useState('');
   const [filtroCpf, setFiltroCpf] = useState('');
-  const [filtroNome, setFiltroNome] = useState('');
-  const [filtroEmpresa, setFiltroEmpresa] = useState('');
 
 
 
@@ -26,9 +24,7 @@ const ListaPessoas = () => {
   }, []);
 
   const pessoasFiltradas = pessoas.filter(pessoa =>
-    pessoa.CPF.toLowerCase().includes(filtroCpf.toLowerCase()) ||
-    pessoa.Nome.toLowerCase().includes(filtroEmpresa.toLowerCase()) ||
-    pessoa.empresa.toLowerCase().includes(filtroNome.toLowerCase())
+    pessoa.CPF.toLowerCase().includes(filtroCpf.toLowerCase())
   );
 
   const fetchPessoas = () => {
@@ -91,20 +87,6 @@ const ListaPessoas = () => {
             placeholder="Buscar por CPF..."
             value={filtroCpf}
             onChange={(e) => setFiltroCpf(e.target.value)}
-            style={styles.input}
-          />
-          <input
-            type="text"
-            placeholder="Buscar por empresa..."
-            value={filtroEmpresa}
-            onChange={(e) => setFiltroEmpresa(e.target.value)}
-            style={styles.input}
-          />
-          <input
-            type="text"
-            placeholder="Buscar por nome..."
-            value={filtroNome}
-            onChange={(e) => setFiltroNome(e.target.value)}
             style={styles.input}
           />
         </div>
