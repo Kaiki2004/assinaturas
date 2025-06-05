@@ -50,7 +50,7 @@ const UploadPage = () => {
     console.log('Arquivo pronto para envio:', file);
 
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', 'http://172.16.4.221:3001/api/upload-excel', true);
+    xhr.open('POST', `${process.env.REACT_APP_API_URL}/upload-excel`, true);
 
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) {

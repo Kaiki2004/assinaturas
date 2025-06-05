@@ -3,6 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
 function FluxoAssinatura() {
+
+  const API_URL = process.env.REACT_APP_API_URL;
+  if (!API_URL) {
+    throw new Error('❌ ERRO: A variável de ambiente REACT_APP_API_URL não está definida.');
+  }
+
   const [cpf, setCpf] = useState('');
   const [nome, setNome] = useState('');
   const [autorizado, setAutorizado] = useState(false);
@@ -74,7 +80,7 @@ function FluxoAssinatura() {
 
   const validarCpf = async () => {
     try {
-      const response = await fetch('http://172.16.4.221:3001/api/validar-cpf', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/validar-cpf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cpf })
@@ -116,7 +122,7 @@ function FluxoAssinatura() {
     const assinaturaBase64 = assinaturaCanvas.current.toDataURL();
 
     try {
-      const response = await fetch('http://172.16.4.221:3001/api/registrar-assinatura', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/registrar-assinatura`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

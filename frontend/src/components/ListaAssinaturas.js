@@ -9,7 +9,7 @@ function ListaAssinaturas() {
   const [filtroCpf, setFiltroCpf] = useState('');
 
   useEffect(() => {
-    fetch('http://172.16.4.221:3001/api/assinaturas')
+    fetch(`${process.env.REACT_APP_API_URL}/assinaturas`)
       .then(res => res.json())
       .then(data => {
         console.log('Dados recebidos:', data);

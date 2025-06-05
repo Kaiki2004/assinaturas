@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Navbar from './NavBar';
+import Navbar from './NavBar'; 
 
 const ListaPessoas = () => {
   const [pessoas, setPessoas] = useState([]);
@@ -13,7 +13,7 @@ const ListaPessoas = () => {
 
 
   useEffect(() => {
-    fetch('http://172.16.4.221:3001/api/assinaturas')
+    fetch(`${process.env.REACT_APP_API_URL}/assinaturas`)
       .then(res => res.json())
       .then(data => {
         console.log('Dados recebidos:', data);
@@ -28,7 +28,7 @@ const ListaPessoas = () => {
   );
 
   const fetchPessoas = () => {
-    fetch('http://172.16.4.221:3001/api/pessoas')
+    fetch(`${process.env.REACT_APP_API_URL}/pessoas`)
       .then(res => res.json())
       .then(data => setPessoas(data.data))
       .catch(err => console.error('Erro ao buscar pessoas:', err));
@@ -41,7 +41,7 @@ const ListaPessoas = () => {
   const excluirPessoa = (id) => {
     if (!window.confirm('Tem certeza que deseja excluir esta pessoa?')) return;
 
-    fetch(`http://172.16.4.221:3001/api/pessoas/${id}`, { method: 'DELETE' })
+    fetch(`${process.env.REACT_APP_API_URL}/pessoas/${id}`, { method: 'DELETE' })
       .then(res => {
         if (res.ok) {
           fetchPessoas();
@@ -55,7 +55,7 @@ const ListaPessoas = () => {
   const adicionarPessoa = (e) => {
     e.preventDefault();
 
-    fetch('http://172.16.4.221:3001/api/pessoas', {
+    fetch(`${process.env.REACT_APP_API_URL}/pessoas`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nome, cpf, empresa, matricula, situacao })

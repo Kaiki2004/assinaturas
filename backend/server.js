@@ -60,8 +60,8 @@ app.post('/api/upload-excel', upload.single('arquivo'), async (req, res) => {
     });
 
     const pool = await sql.connect(config);
-    await pool.request().query('DELETE FROM Pessoas');
-    await pool.request().query('DELETE FROM Assinaturas');
+    await pool.request().query('TRUNCATE TABLE Pessoas');
+    await pool.request().query('TRUNCATE TABLE Assinaturas');
 
     const validRows = [];
 
