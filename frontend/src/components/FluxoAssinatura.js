@@ -443,7 +443,6 @@ const styles = {
     alignItems: 'center',
   },
   video: {
-    width: '500px',
     height: '250px',
     width: '100%',
     borderRadius: '8px',
