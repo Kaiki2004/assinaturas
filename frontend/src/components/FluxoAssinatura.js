@@ -80,16 +80,28 @@ function FluxoAssinatura() {
 
   const validarCpf = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/validar-cpf`, {
+      const response = await fetch(`${API_URL}/validar-cpf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cpf })
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        const data = await response.json();
+        if (data.assinouRecentemente) {
+          Swal.fire({
+            icon: 'info',
+            title: 'Assinatura recente detectada',
+            text: `Já assinado`,
+            confirmButtonColor: '#3085d6',
+          });
+          return;
+        }
+
         setNome(data.nome);
         setAutorizado(true);
+
         Swal.fire({
           icon: 'success',
           title: `CPF válido`,
@@ -98,20 +110,66 @@ function FluxoAssinatura() {
         });
 
       } else {
-        const erro = await response.json();
         Swal.fire({
           icon: 'error',
           title: 'CPF Inválido',
-          text: erro.error || 'CPF não autorizado',
+          text: data.error || 'CPF não autorizado',
           confirmButtonColor: '#d33'
         });
-
       }
     } catch (err) {
       console.error('Erro ao validar CPF:', err);
-      alert('❌ Erro na validação do CPF.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro na validação do CPF.',
+      });
     }
   };
+
+  const bloqueio20 = async () => {
+    try {
+      const response = await fetch(`${API_URL}/validar-bloqueio-20`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cpf })
+      });
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonErr) {
+        const text = await response.text();
+        console.error('Resposta não é JSON. Conteúdo recebido:', text);
+        throw new Error('Resposta inválida do servidor.');
+      }
+
+      if (response.ok && data.bloqueio20) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Problema detectado',
+          text: `Procure o RH`,
+          confirmButtonColor: '#3085d6',
+        });
+        return true;
+      }
+
+      return false;
+
+    } catch (error) {
+      console.error('Erro ao verificar bloqueio de 20 dias:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Erro ao verificar bloqueio. Tente novamente.',
+      });
+      return true;
+    }
+  };
+
+
+
+
 
   const limparAssinatura = () => {
     const ctx = assinaturaCanvas.current.getContext('2d');
@@ -119,16 +177,25 @@ function FluxoAssinatura() {
   };
 
   const registrarAssinatura = async () => {
+    if (!assinaturaCanvas.current) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: 'Área de assinatura não carregada. Tente novamente.',
+      });
+      return;
+    }
+
     const assinaturaBase64 = assinaturaCanvas.current.toDataURL();
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/registrar-assinatura`, {
+      const response = await fetch(`${API_URL}/registrar-assinatura`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cpf,
           assinatura: assinaturaBase64,
-          foto: fotoBase64 
+          foto: fotoBase64
         })
       });
 
@@ -161,6 +228,7 @@ function FluxoAssinatura() {
     }
   };
 
+
   const impedirScroll = (e) => {
     e.preventDefault();
   };
@@ -188,8 +256,6 @@ function FluxoAssinatura() {
     // Remove o bloqueio de touchmove
     document.removeEventListener('touchmove', impedirScroll);
   };
-
-
 
 
   const desenhar = (e) => {
@@ -228,7 +294,18 @@ function FluxoAssinatura() {
             onChange={(e) => setCpf(e.target.value)}
             placeholder="Digite seu CPF"
           />
-          <button style={styles.button} onClick={validarCpf}>Validar CPF</button>
+          <button
+            style={styles.button}
+            onClick={async () => {
+              const bloqueado = await bloqueio20();
+              if (!bloqueado) {
+                validarCpf();
+              }
+            }}
+          >
+            Validar CPF
+          </button>
+
         </div>
       ) : (
         <div style={styles.card}>
@@ -254,7 +331,7 @@ function FluxoAssinatura() {
 
 
           <div style={styles.buttonsRow}>
-            <button style={styles.button} onClick={() => {capturarFoto(); setAssinaturas(true);}}>Capturar Foto</button>
+            <button style={styles.button} onClick={() => { capturarFoto(); setAssinaturas(true); }}>Capturar Foto</button>
           </div>
 
           {fotoBase64 && (
@@ -265,10 +342,10 @@ function FluxoAssinatura() {
           {showModal && (
             <>
               <div style={styles.showModal}>
-                
+
                 <div>
                   <div  >
-                    <h4 style={{display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center'}}>ASSINATURA:</h4>
+                    <h4 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>ASSINATURA:</h4>
                     <div >
                       <canvas
                         ref={assinaturaCanvas}
@@ -286,18 +363,19 @@ function FluxoAssinatura() {
                     <button style={styles.limpar} onClick={limparAssinatura}>Limpar</button>
                     <button
                       style={styles.button}
-                      onClick={() => {registrarAssinatura(); setShowModal(false)}}
-                      //disabled={!fotoBase64}
+                      onClick={() => { registrarAssinatura(); setShowModal(false) }}
                     >
                       Registrar
                     </button>
+
                   </div>
                 </div>
               </div>
             </>
           )}
 
-          { assinaturas && <button id='assinar' style={styles.button} onClick={() => setShowModal(true)}>Assinar</button>}
+          {assinaturas && <button id='assinar' style={styles.button} onClick={() => setShowModal(true)}>Assinar</button>}
+
 
         </div>
       )}
@@ -371,7 +449,7 @@ const styles = {
     borderRadius: '8px',
     border: '1px solid #ccc',
   },
-  
+
   canvas: {
     width: '100%',
     height: '100%',

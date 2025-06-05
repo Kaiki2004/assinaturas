@@ -4,6 +4,8 @@ const sql = require('mssql');
 const multer = require('multer');
 const xlsx = require('xlsx');
 const cors = require('cors');
+require('dotenv').config();
+
 
 const app = express();
 const PORT = 3001;
@@ -15,12 +17,13 @@ app.use(cors());
 app.use(bodyParser.json());
 
 const config = {
-  user: 'sa',
-  password: 'Rzt@2018',
-  server: 'WKSR475\\SQLEXPRESS',
-  database: 'app_asinaturas',
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  server: process.env.DB_SERVER,
+  database: process.env.DB_NAME,
   options: { encrypt: false }
 };
+
 
 // ➡️ Validação de CPF
 function validarCPF(cpf) {
@@ -214,24 +217,64 @@ app.post('/api/validar-cpf', async (req, res) => {
 
   try {
     const pool = await sql.connect(config);
-    const result = await pool.request()
+
+    const pessoa = await pool.request()
       .input('cpf', sql.NVarChar, cpf)
       .query('SELECT Nome FROM Pessoas WHERE CPF = @cpf');
 
-    if (result.recordset.length === 0) {
-      return res.status(404).json({ error: 'CPF não encontrado.' });
+    if (pessoa.recordset.length === 0) {
+      return res.status(404).json({ error: 'CPF não encontrado. Fale com o RH.' });
     }
 
-    const nome = result.recordset[0].Nome;
-    res.status(200).json({ nome });
+    const nome = pessoa.recordset[0].Nome;
+
+    const assinaturas = await pool.request()
+      .input('cpf', sql.NVarChar, cpf)
+      .query(`
+        SELECT TOP 1 DataAssinatura 
+        FROM Assinaturas 
+        WHERE CPF = @cpf AND DataAssinatura >= DATEADD(DAY, -20, GETDATE())
+      `);
+
+    const assinouRecentemente = assinaturas.recordset.length > 0;
+
+    return res.status(200).json({ nome, assinouRecentemente });
 
   } catch (err) {
     console.error('Erro ao validar CPF:', err);
-    res.status(500).json({ error: 'Erro no servidor.' });
+    return res.status(500).json({ error: 'Erro no servidor.' });
   }
 });
 
-// ➡️ Registrar assinatura com bloqueio de 20 dias
+// Validar bloqueio
+app.post('/api/validar-bloqueio-20', async (req, res) => {
+  const { cpf } = req.body;
+
+  try {
+    const pool = await sql.connect(config);
+    const result = await pool.request()
+      .input('cpf', sql.NVarChar, cpf)
+      .query("SELECT status FROM Pessoas WHERE CPF = @cpf");
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ error: 'CPF não encontrado. Fale com o RH.' });
+    }
+
+    const status = result.recordset[0].status;
+    const bloqueio20 = (status === 'Bloqueado');
+    return res.status(200).json({ bloqueio20 });
+
+  } catch (err) {
+    console.error('Erro ao validar bloqueio:', err);
+    return res.status(500).json({ error: 'Erro no servidor.' });
+  }
+});
+
+
+
+
+
+// ➡️ Registrar assinatura 
 app.post('/api/registrar-assinatura', async (req, res) => {
   const { cpf, foto, assinatura } = req.body;
 
@@ -256,7 +299,7 @@ app.post('/api/registrar-assinatura', async (req, res) => {
       .query('SELECT Nome FROM Pessoas WHERE CPF = @cpf');
 
     if (nomeResult.recordset.length === 0) {
-      return res.status(404).json({ error: 'CPF não encontrado.' });
+      return res.status(404).json({ error: 'CPF não encontrado. Fale com o RH.' });
     }
 
     const nome = nomeResult.recordset[0].Nome;
@@ -290,7 +333,7 @@ app.get('/api/assinaturas', async (req, res) => {
     const pool = await sql.connect(config);
 
     const result = await pool.request().query(`
-      SELECT p.Id, a.Assinatura,a.Foto, a.DataAssinatura, p.Nome, p.CPF
+      SELECT p.Id,p.status as Situacao, a.Assinatura,a.Foto, a.DataAssinatura, p.Nome, p.CPF
       FROM Pessoas p LEFT JOIN Assinaturas a ON a.CPF = p.CPF
       ORDER BY p.Id DESC
     `);
@@ -318,6 +361,7 @@ app.get('/api/assinaturas', async (req, res) => {
         CPF: assinatura.CPF,
         Data: dataFormatada,
         Assinatura: assinaturaStatus,
+        Status: assinatura.Situacao,
         Foto: assinatura.Foto
       };
     });
