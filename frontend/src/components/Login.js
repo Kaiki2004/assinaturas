@@ -25,7 +25,7 @@ function Login() {
   return (
     <div style={styles.container}>
       <a onClick={() => navigate('/')} style={styles.voltar} >Voltar</a>
-      <h2>Login</h2>
+      <h2 style={{ margin: '20px'}}>Login</h2>
       <form onSubmit={handleLogin} style={styles.form}>
         <input
           type="text"

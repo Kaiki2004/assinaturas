@@ -167,10 +167,6 @@ function FluxoAssinatura() {
     }
   };
 
-
-
-
-
   const limparAssinatura = () => {
     const ctx = assinaturaCanvas.current.getContext('2d');
     ctx.clearRect(0, 0, assinaturaCanvas.current.width, assinaturaCanvas.current.height);
@@ -238,9 +234,6 @@ function FluxoAssinatura() {
     const ctx = assinaturaCanvas.current.getContext('2d');
     ctx.beginPath();
 
-    // Bloqueia o scroll da tela durante o desenho
-    //document.body.style.overflow = 'hidden';
-
     // Bloqueia movimento de rolagem por touch no celular
     document.addEventListener('touchmove', impedirScroll, { passive: false });
 
@@ -282,20 +275,20 @@ function FluxoAssinatura() {
   };
 
   return (
-    <div style={styles.container}>
-      <a href='/' style={styles.voltar} onClick={handleSair}>Voltar</a>
+    <div id="container" >
+      <a href='/' id='voltar' onClick={handleSair}>Voltar</a>
       {!autorizado ? (
-        <div style={styles.card}>
-          <h2>Digite seu CPF:</h2>
+        <div id='cpf'>
+          <h2>Digite seu CPF</h2>
           <input
-            style={styles.input}
+
             type="text"
             value={cpf}
             onChange={(e) => setCpf(e.target.value)}
             placeholder="Digite seu CPF"
           />
+
           <button
-            style={styles.button}
             onClick={async () => {
               const bloqueado = await bloqueio20();
               if (!bloqueado) {
@@ -308,75 +301,70 @@ function FluxoAssinatura() {
 
         </div>
       ) : (
-        <div style={styles.card}>
-          <h3 style={styles.titulo}>Bem-vindo, {nome}!</h3>
+        <div id='conteiner_fotos'>
+          <h3 id='titulo'>Bem-vindo, {nome}!</h3>
+          <h4>TIRE SUA FOTO</h4>
+          <div id='foto' >
+            <video
+              ref={videoRef}
+              width="500"
+              height="400"
+              autoPlay
+              muted
+              playsInline
+            />
+            <canvas
+              ref={fotoCanvas}
+              width={300}
+              height={400}
+              style={{ display: 'none' }}
+            />
 
-          <h4>Foto:</h4>
-          <video
-            ref={videoRef}
-            width="500"
-            height="400"
-            autoPlay
-            muted
-            playsInline
-            style={styles.video}
-          />
+            {fotoBase64 && (
+              <div id='fotoPreview'>
+                <img src={fotoBase64} alt="Foto Capturada" width="400"
+                  height="500" />
+              </div>
+            )}
 
-          <canvas
-            ref={fotoCanvas}
-            width={300}
-            height={200}
-            style={{ display: 'none' }}
-          />
+            <div>
+              <div >
+                <button id='tirar_foto' onClick={() => { capturarFoto(); setAssinaturas(true); }}>Capturar Foto</button>
+              </div>
+              <div>
+                {assinaturas && <button id='assinar' onClick={() => setShowModal(true)}>Assinar</button>}
+              </div>
+            </div>
 
-
-          <div style={styles.buttonsRow}>
-            <button style={styles.button} onClick={() => { capturarFoto(); setAssinaturas(true); }}>Capturar Foto</button>
           </div>
 
-          {fotoBase64 && (
-            <div style={styles.cameraContainer}>
-              <img src={fotoBase64} alt="Foto Capturada" style={styles.fotoPreview} />
-            </div>
-          )}
           {showModal && (
             <>
-              <div style={styles.showModal}>
-
-                <div>
-                  <div  >
-                    <h4 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>ASSINATURA:</h4>
-                    <div >
-                      <canvas
-                        ref={assinaturaCanvas}
-                        style={styles.canvas}
-                        onMouseDown={iniciarDesenho}
-                        onMouseUp={pararDesenho}
-                        onMouseMove={desenhar}
-                        onTouchStart={iniciarDesenho}
-                        onTouchEnd={pararDesenho}
-                        onTouchMove={desenhar}
-                      ></canvas>
-                    </div>
-                  </div>
-                  <div style={styles.buttonsRow}>
-                    <button style={styles.limpar} onClick={limparAssinatura}>Limpar</button>
+              <div id='showModal'>
+                <div >
+                  <h4 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>ASSINE ABAIXO</h4>
+                  <canvas
+                    ref={assinaturaCanvas}
+                    id='canvas'
+                    onMouseDown={iniciarDesenho}
+                    onMouseUp={pararDesenho}
+                    onMouseMove={desenhar}
+                    onTouchStart={iniciarDesenho}
+                    onTouchEnd={pararDesenho}
+                    onTouchMove={desenhar}
+                  ></canvas>
+                  <div id='buttonsRow'>
+                    <button id='limpar' onClick={limparAssinatura}>Limpar</button>
                     <button
-                      style={styles.button}
                       onClick={() => { registrarAssinatura(); setShowModal(false) }}
                     >
                       Registrar
                     </button>
-
                   </div>
                 </div>
               </div>
             </>
           )}
-
-          {assinaturas && <button id='assinar' style={styles.button} onClick={() => setShowModal(true)}>Assinar</button>}
-
-
         </div>
       )}
     </div>
@@ -385,133 +373,3 @@ function FluxoAssinatura() {
 
 export default FluxoAssinatura;
 
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: '20px',
-    overflowY: 'auto',
-    maxHeight: '100vh',
-  },
-  card: {
-    maxWidth: '600px',
-    width: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '15px',
-    alignItems: 'center',
-  },
-  input: {
-    width: '100%',
-    height: '40px',
-    padding: '10px',
-    border: '1px solid #ccc',
-    borderRadius: '4px',
-    fontSize: '16px',
-  },
-  button: {
-    width: '100%',
-    height: '40px',
-    padding: '10px',
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '16px',
-    cursor: 'pointer',
-  },
-  limpar: {
-    width: '100%',
-    padding: '10px',
-    backgroundColor: 'goldenrod',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '16px',
-    cursor: 'pointer',
-  },
-  cameraContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-    width: '100%',
-  },
-  camera: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  video: {
-    height: '250px',
-    width: '100%',
-    borderRadius: '8px',
-    border: '1px solid #ccc',
-  },
-
-  canvas: {
-    width: '100%',
-    height: '100%',
-    border: '1px solid black',
-    cursor: 'crosshair',
-  },
-  buttonsRow: {
-    display: 'flex',
-    gap: '10px',
-    width: '100%',
-  },
-  titulo: {
-    fontSize: '20px',
-    marginBottom: '10px',
-    backgroundColor: '#64d964',
-    borderRadius: '5px',
-    padding: '10px',
-    textAlign: 'center',
-  },
-  voltar: {
-    position: 'absolute',
-    backgroundColor: 'none',
-    color: 'black',
-    textDecoration: 'none',
-    top: '10px',
-    left: '10px',
-    padding: '10px',
-    fontSize: '14px',
-    cursor: 'pointer',
-    border: 'none'
-  },
-  buttonCapitura: {
-    with: '100%',
-    margin: '10px',
-    padding: '10px',
-    backgroundColor: 'grey',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '16px',
-    cursor: 'pointer',
-  },
-  fotoPreview: {
-    with: '100%',
-    margin: '10px',
-    padding: '10px',
-    backgroundColor: 'grey',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '16px',
-    cursor: 'pointer',
-  },
-  showModal: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'white',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 9999
-  }
-};

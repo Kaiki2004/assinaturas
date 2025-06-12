@@ -94,7 +94,7 @@ const UploadPage = () => {
         <h2>Upload de Arquivo Excel</h2>
 
         <div>
-          <input type="file" accept=".xlsx,.xls" onChange={handleFileChange} />
+          <input id='arquivo' type="file" accept=".xlsx,.xls" onChange={handleFileChange} />
         </div>
 
         {fileName && <p>Arquivo selecionado: <strong>{fileName}</strong></p>}
@@ -106,7 +106,7 @@ const UploadPage = () => {
           </div>
         )}
 
-        <button onClick={handleUpload} disabled={uploading}>
+        <button style={styles.enviar} onClick={handleUpload} disabled={uploading}>
           {uploading ? 'Enviando...' : 'Enviar'}
         </button>
       </div>
@@ -140,5 +140,16 @@ const styles = {
     height: '100%',
     backgroundColor: '#4CAF50',
     transition: 'width 0.3s ease'
-  }
+  },
+  enviar: {
+    width: '100%',
+    height: '40px',
+    padding: '10px',
+    backgroundColor: 'green',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '16px',
+    cursor: 'pointer',
+  },
 };
