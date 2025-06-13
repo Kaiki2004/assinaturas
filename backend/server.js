@@ -270,10 +270,6 @@ app.post('/api/validar-bloqueio-20', async (req, res) => {
   }
 });
 
-
-
-
-
 // ➡️ Registrar assinatura 
 app.post('/api/registrar-assinatura', async (req, res) => {
   const { cpf, foto, assinatura } = req.body;
@@ -323,9 +319,6 @@ app.post('/api/registrar-assinatura', async (req, res) => {
   }
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Servidor rodando em http://0.0.0.0:${PORT}`);
-});
 
 // ➡️ Listar assinaturas (Imagens em base64)
 app.get('/api/assinaturas', async (req, res) => {
@@ -333,9 +326,9 @@ app.get('/api/assinaturas', async (req, res) => {
     const pool = await sql.connect(config);
 
     const result = await pool.request().query(`
-      SELECT p.Id,p.status as Situacao, a.Assinatura,a.Foto, a.DataAssinatura, p.Nome, p.CPF
+      SELECT p.Id,p.status as Situacao, a.Assinatura,a.Foto, a.DataAssinatura, p.Nome, p.CPF, p.matricula,p.empresa
       FROM Pessoas p LEFT JOIN Assinaturas a ON a.CPF = p.CPF
-      ORDER BY p.Id DESC
+      ORDER BY p.empresa ASC
     `);
 
     const assinaturas = result.recordset.map(assinatura => {
@@ -362,7 +355,9 @@ app.get('/api/assinaturas', async (req, res) => {
         Data: dataFormatada,
         Assinatura: assinaturaStatus,
         Status: assinatura.Situacao,
-        Foto: assinatura.Foto
+        Foto: assinatura.Foto,
+        Matricula: assinatura.matricula,
+        Empresa: assinatura.empresa
       };
     });
 
@@ -374,3 +369,7 @@ app.get('/api/assinaturas', async (req, res) => {
   }
 });
 
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Servidor rodando em http://0.0.0.0:${PORT}`);
+});

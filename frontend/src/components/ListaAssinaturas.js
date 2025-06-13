@@ -34,13 +34,17 @@ function ListaAssinaturas() {
     const middle = doc.internal.pageSize.getWidth() / 2;
     doc.text('LISTA CESTA BÁSICA', middle, y, { align: 'center' });
     y += 40;
+    doc.text('ART. BLABLABLA\nART. BLABLABLA', margin, y);
+    y += 40;
 
     const tableBody = assinaturasFiltradas.map((assinatura) => {
-      const { Nome, CPF, Data } = assinatura;
+      const { Nome, CPF, Data, Empresa,Matricula } = assinatura;
 
       return [
         { content: Nome || '-', styles: { valign: 'middle' } },
+        { content: Matricula || '-', styles: { valign: 'middle' } },
         { content: CPF || '-', styles: { valign: 'middle' } },
+        { content: Empresa || '-', styles: { valign: 'middle' } },
         { content: Data || '-', styles: { valign: 'middle' } },
         { content: '', styles: { cellWidth: 80, minCellHeight: 50 } }, // Assinatura
         { content: '', styles: { cellWidth: 80, minCellHeight: 50 } }, // Foto
@@ -48,7 +52,7 @@ function ListaAssinaturas() {
     });
 
     autoTable(doc, {
-      head: [['Nome', 'CPF', 'Data', 'Assinatura', 'Foto']],
+      head: [['Nome','Matrícula', 'CPF','Empresa', 'Data', 'Assinatura', 'Foto']],
       body: tableBody,
       startY: y,
       theme: 'grid',
@@ -64,7 +68,7 @@ function ListaAssinaturas() {
         if (data.section !== 'body') return;
 
         // Assinatura
-        if (colIndex === 3) {
+        if (colIndex === 5) {
           const assinatura = assinaturasFiltradas[rowIndex].Assinatura;
           if (assinatura && assinatura !== 'Não assinado') {
             try {
@@ -79,11 +83,11 @@ function ListaAssinaturas() {
         }
 
         // Foto
-        if (colIndex === 4) {
+        if (colIndex === 6) {
           const foto = assinaturasFiltradas[rowIndex].Foto;
           if (foto && foto.startsWith('data:image')) {
             try {
-              doc.addImage(foto, 'PNG', data.cell.x + 2, data.cell.y + 2, 70, 40);
+              doc.addImage(foto, 'PNG', data.cell.x + 2, data.cell.y + 2, 70, 90);
             } catch (error) {
               console.warn(`Erro ao renderizar foto da linha ${rowIndex}:`, error);
               doc.text('Sem foto', data.cell.x + 5, data.cell.y + 20);
@@ -118,17 +122,22 @@ function ListaAssinaturas() {
             <thead>
               <tr style={styles.tr}>
                 <th>Nome</th>
+                <th>Matricula</th>
                 <th>CPF</th>
                 <th>Data</th>
+                <th>Empresa</th>
                 <th>Assinatura</th>
+                <th>Foto</th>
               </tr>
             </thead>
             <tbody>
               {assinaturasFiltradas.map((assinatura) => (
                 <tr key={assinatura.Id}>
                   <td style={styles.td}>{assinatura.Nome}</td>
+                  <td style={styles.td}>{assinatura.Matricula}</td>
                   <td style={styles.td}>{assinatura.CPF}</td>
                   <td style={styles.td}>{assinatura.Data}</td>
+                  <td style={styles.td}>{assinatura.Empresa}</td>
                   <td style={styles.td}>
                     {assinatura.Status === 'Bloqueado' ? (
                       <span style={styles.span}>Bloqueado, motivo: Falta</span>
@@ -189,7 +198,7 @@ const styles = {
   },
   img: {
     width: '100px',
-    height: 'auto',
+    height: '90px',
     borderRadius: '4px'
   },
   th: {
@@ -198,6 +207,7 @@ const styles = {
   },
   td: {
     border: '1px solid black',
+
   },
   button: {
     padding: '10px 20px',
