@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Navbar from './NavBar';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-
+import './ListaAssinaturas.css';
 
 function ListaAssinaturas() {
   const [assinaturas, setAssinaturas] = useState([]);
@@ -29,197 +29,211 @@ function ListaAssinaturas() {
     const doc = new jsPDF('p', 'pt', 'a4');
     const margin = 20;
     let y = margin;
-
-    doc.setFontSize(16);
     const middle = doc.internal.pageSize.getWidth() / 2;
-    doc.text('LISTA CESTA BÁSICA', middle, y, { align: 'center' });
-    y += 40;
-    doc.text('ART. BLABLABLA\nART. BLABLABLA', margin, y);
-    y += 40;
 
-    const tableBody = assinaturasFiltradas.map((assinatura) => {
-      const { Nome, CPF, Data, Empresa,Matricula } = assinatura;
+    const empresa = 'RIZATTI & CIA LTDA';
+    const titulo = 'LISTA CESTA BÁSICA';
+    const descricao = `Recebida da empresa Rizatti e Cia Ltda., cadastrada no CNPJ 47.974.944/0001-23, uma (01) cesta básica, conforme cláusula décima primeira da Convenção Coletiva do Sindicato dos Condutores de Veículos de Franca-SP.`;
 
-      return [
-        { content: Nome || '-', styles: { valign: 'middle' } },
-        { content: Matricula || '-', styles: { valign: 'middle' } },
-        { content: CPF || '-', styles: { valign: 'middle' } },
-        { content: Empresa || '-', styles: { valign: 'middle' } },
-        { content: Data || '-', styles: { valign: 'middle' } },
-        { content: '', styles: { cellWidth: 80, minCellHeight: 50 } }, // Assinatura
-        { content: '', styles: { cellWidth: 80, minCellHeight: 50 } }, // Foto
-      ];
-    });
+    // Cabeçalho formatado
+    doc.setFontSize(16);
+    doc.text(titulo, middle, y, { align: 'center' });
+    y += 30;
+
+    const textoQuebrado = doc.splitTextToSize(descricao, 500);
+    doc.setFontSize(12);
+    doc.text(textoQuebrado, middle, y, { align: 'center' });
+    y += textoQuebrado.length * 14 + 20;
+
+    const assinaturasEmpresa = assinaturasFiltradas.filter(
+      (a) => a.Empresa === empresa
+    );
+
+    const tableBody = assinaturasEmpresa.map(({ Nome, CPF, Data, Empresa, Matricula }) => [
+      { content: Nome || '-', styles: { valign: 'middle' } },
+      { content: Matricula || '-', styles: { valign: 'middle' } },
+      { content: CPF || '-', styles: { valign: 'middle' } },
+      { content: Empresa || '-', styles: { valign: 'middle' } },
+      { content: Data || '-', styles: { valign: 'middle' } },
+      { content: '', styles: { cellWidth: 80, minCellHeight: 50 } },
+      { content: '', styles: { cellWidth: 80, minCellHeight: 50 } },
+    ]);
 
     autoTable(doc, {
-      head: [['Nome','Matrícula', 'CPF','Empresa', 'Data', 'Assinatura', 'Foto']],
+      head: [['Nome', 'Matrícula', 'CPF', 'Empresa', 'Data', 'Assinatura', 'Foto']],
       body: tableBody,
       startY: y,
       theme: 'grid',
-      styles: {
-        fontSize: 10,
-        cellPadding: 5,
-      },
+      styles: { fontSize: 10, cellPadding: 5 },
       didDrawCell: function (data) {
-        const rowIndex = data.row.index;
-        const colIndex = data.column.index;
-
-        // Ignora cabeçalho
         if (data.section !== 'body') return;
 
-        // Assinatura
-        if (colIndex === 5) {
-          const assinatura = assinaturasFiltradas[rowIndex].Assinatura;
-          if (assinatura && assinatura !== 'Não assinado') {
-            try {
-              doc.addImage(assinatura, 'PNG', data.cell.x + 2, data.cell.y + 2, 70, 40);
-            } catch (error) {
-              console.warn(`Erro ao renderizar assinatura da linha ${rowIndex}:`, error);
+        const rowIndex = data.row.index;
+        const colIndex = data.column.index;
+        const rowData = assinaturasEmpresa[rowIndex];
+
+        try {
+          if (colIndex === 5) {
+            if (rowData.Assinatura && rowData.Assinatura !== 'Não assinado') {
+              doc.addImage(rowData.Assinatura, 'PNG', data.cell.x + 2, data.cell.y + 2, 70, 40);
+            } else {
               doc.text('Não assinado', data.cell.x + 5, data.cell.y + 20);
             }
-          } else {
-            doc.text('Não assinado', data.cell.x + 5, data.cell.y + 20);
           }
-        }
 
-        // Foto
-        if (colIndex === 6) {
-          const foto = assinaturasFiltradas[rowIndex].Foto;
-          if (foto && foto.startsWith('data:image')) {
-            try {
-              doc.addImage(foto, 'PNG', data.cell.x + 2, data.cell.y + 2, 70, 90);
-            } catch (error) {
-              console.warn(`Erro ao renderizar foto da linha ${rowIndex}:`, error);
+          if (colIndex === 6) {
+            if (rowData.Foto && rowData.Foto.startsWith('data:image')) {
+              doc.addImage(rowData.Foto, 'PNG', data.cell.x + 2, data.cell.y + 2, 70, 90);
+            } else {
               doc.text('Sem foto', data.cell.x + 5, data.cell.y + 20);
             }
-          } else {
-            doc.text('Sem foto', data.cell.x + 5, data.cell.y + 20);
           }
+        } catch (error) {
+          console.warn(`Erro ao renderizar imagem na linha ${rowIndex}, coluna ${colIndex}:`, error);
         }
-      }
+      },
     });
 
-    doc.save('lista_cestas.pdf');
+    doc.save('Lista_Cestas_Rizatti.pdf');
   };
 
+
+  const exportarPDF_formula = () => {
+    const doc = new jsPDF('p', 'pt', 'a4');
+    const margin = 20;
+    let y = margin;
+    const middle = doc.internal.pageSize.getWidth() / 2;
+
+    const empresa = 'Formulaexpress';
+    const titulo = 'LISTA CESTA BÁSICA';
+    const descricao = `Recebida da empresa Formulaexpress Comércio de Bebidas Ltda., cadastrada no CNPJ 36.666.191/0001-23, uma (01) cesta básica, conforme cláusula décima primeira da Convenção Coletiva do Sindicato dos Condutores de Veículos de Franca-SP.`;
+
+    // Título e Descrição Centralizados
+    doc.setFontSize(16);
+    doc.text(titulo, middle, y, { align: 'center' });
+    y += 30;
+
+    const splitDescricao = doc.splitTextToSize(descricao, 500);
+    doc.setFontSize(12);
+    doc.text(splitDescricao, middle, y, { align: 'center' });
+    y += splitDescricao.length * 14 + 20;
+
+    const assinaturasEmpresa = assinaturasFiltradas.filter(
+      (a) => a.Empresa === empresa
+    );
+
+    const tableBody = assinaturasEmpresa.map(({ Nome, CPF, Data, Empresa, Matricula }) => [
+      { content: Nome || '-', styles: { valign: 'middle' } },
+      { content: Matricula || '-', styles: { valign: 'middle' } },
+      { content: CPF || '-', styles: { valign: 'middle' } },
+      { content: Empresa || '-', styles: { valign: 'middle' } },
+      { content: Data || '-', styles: { valign: 'middle' } },
+      { content: '', styles: { cellWidth: 80, minCellHeight: 50 } },
+      { content: '', styles: { cellWidth: 80, minCellHeight: 50 } },
+    ]);
+
+    autoTable(doc, {
+      head: [['Nome', 'Matrícula', 'CPF', 'Empresa', 'Data', 'Assinatura', 'Foto']],
+      body: tableBody,
+      startY: y,
+      theme: 'grid',
+      styles: { fontSize: 10, cellPadding: 5 },
+      didDrawCell: function (data) {
+        if (data.section !== 'body') return;
+
+        const rowIndex = data.row.index;
+        const colIndex = data.column.index;
+        const rowData = assinaturasEmpresa[rowIndex];
+
+        try {
+          if (colIndex === 5) {
+            if (rowData.Assinatura && rowData.Assinatura !== 'Não assinado') {
+              doc.addImage(rowData.Assinatura, 'PNG', data.cell.x + 2, data.cell.y + 2, 70, 40);
+            } else {
+              doc.text('Não assinado', data.cell.x + 5, data.cell.y + 20);
+            }
+          }
+
+          if (colIndex === 6) {
+            if (rowData.Foto && rowData.Foto.startsWith('data:image')) {
+              doc.addImage(rowData.Foto, 'PNG', data.cell.x + 2, data.cell.y + 2, 70, 90);
+            } else {
+              doc.text('Sem foto', data.cell.x + 5, data.cell.y + 20);
+            }
+          }
+        } catch (error) {
+          console.warn(`Erro ao renderizar imagem na linha ${rowIndex}, coluna ${colIndex}:`, error);
+        }
+      },
+    });
+
+    doc.save('Lista_Cestas_Formula.pdf');
+  };
 
   return (
     <div>
       <Navbar />
-      <div style={styles.container}>
+      <div className="container">
         <h2>Lista de Assinaturas</h2>
-
-        <input
-          type="text"
-          placeholder="Buscar por CPF..."
-          value={filtroCpf}
-          onChange={(e) => setFiltroCpf(e.target.value)}
-          style={styles.input}
-        />
+        <div className="filtro-horizontal">
+          <input
+            type="text"
+            placeholder="Buscar por CPF..."
+            value={filtroCpf}
+            onChange={(e) => setFiltroCpf(e.target.value)}
+            className="input"
+          />
+          <button onClick={exportarPDF} className="button">
+            Rizatti
+          </button>
+          <button onClick={exportarPDF_formula} className="button_formula">
+            FormulaExpress
+          </button>
+        </div>
 
         {assinaturasFiltradas.length > 0 ? (
-          <table style={styles.table}>
+          <table className="table">
             <thead>
-              <tr style={styles.tr}>
-                <th>Nome</th>
-                <th>Matricula</th>
-                <th>CPF</th>
-                <th>Data</th>
-                <th>Empresa</th>
-                <th>Assinatura</th>
-                <th>Foto</th>
+              <tr className="tr">
+                <th className="th">Nome</th>
+                <th className="th">Matrícula</th>
+                <th className="th">CPF</th>
+                <th className="th">Data</th>
+                <th className="th">Empresa</th>
+                <th className="th">Assinatura</th>
+                <th className="th">Foto</th>
               </tr>
             </thead>
             <tbody>
               {assinaturasFiltradas.map((assinatura) => (
                 <tr key={assinatura.Id}>
-                  <td style={styles.td}>{assinatura.Nome}</td>
-                  <td style={styles.td}>{assinatura.Matricula}</td>
-                  <td style={styles.td}>{assinatura.CPF}</td>
-                  <td style={styles.td}>{assinatura.Data}</td>
-                  <td style={styles.td}>{assinatura.Empresa}</td>
-                  <td style={styles.td}>
+                  <td className="td">{assinatura.Nome}</td>
+                  <td className="td">{assinatura.Matricula}</td>
+                  <td className="td">{assinatura.CPF}</td>
+                  <td className="td">{assinatura.Data}</td>
+                  <td className="td">{assinatura.Empresa}</td>
+                  <td className="td">
                     {assinatura.Status === 'Bloqueado' ? (
-                      <span style={styles.span}>Bloqueado, motivo: Falta</span>
+                      <span className="span">Bloqueado, motivo: Falta</span>
                     ) : assinatura.Assinatura && assinatura.Assinatura !== 'Não assinado' ? (
-                      <img
-                        src={assinatura.Assinatura}
-                        alt="Assinatura"
-                        style={styles.img}
-                      />
+                      <img src={assinatura.Assinatura} alt="Assinatura" className="img" />
                     ) : (
-                      <span style={styles.span}>Sem assinatura</span>
+                      <span className="span">Sem assinatura</span>
                     )}
                   </td>
-                  <td style={styles.td}> {assinatura.Foto && <img src={assinatura.Foto} alt="Foto" style={styles.img} />}</td>
+                  <td className="td">
+                    {assinatura.Foto && <img src={assinatura.Foto} alt="Foto" className="img" />}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
-
         ) : (
           <p>Nenhuma assinatura encontrada.</p>
         )}
-        <button onClick={exportarPDF} style={styles.button}>
-          Exportar em PDF
-        </button>
       </div>
     </div>
   );
 }
 
 export default ListaAssinaturas;
-
-const styles = {
-  container: {
-    padding: '20px',
-    maxWidth: '1200px',
-    margin: '0 auto'
-  },
-  input: {
-    width: '100%',
-    maxWidth: '300px',
-    padding: '10px',
-    marginBottom: '20px',
-    border: '1px solid #ccc',
-    borderRadius: '4px',
-    fontSize: '16px'
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    border: '1px solid black',
-    justifyContent: 'center',
-    alignItems: 'center',
-    textAlign: 'center'
-  },
-  tr: {
-    border: '1px solid black',
-  },
-  img: {
-    width: '100px',
-    height: '90px',
-    borderRadius: '4px'
-  },
-  th: {
-    backgroundColor: '#f4f4f4',
-    padding: '10px',
-  },
-  td: {
-    border: '1px solid black',
-
-  },
-  button: {
-    padding: '10px 20px',
-    margin: '10px 0',
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  },
-  span: {
-    color: 'red',
-  }
-
-};

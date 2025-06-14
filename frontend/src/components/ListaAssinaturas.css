@@ -1,0 +1,131 @@
+/* Layout geral */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.container {
+    padding: 20px;
+    margin: 0 auto;
+    max-width: 1200px;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* Campo de busca e botões alinhados na horizontal */
+.filtro-horizontal {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Input CPF */
+.input {
+    flex: 1;
+    min-width: 250px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: border 0.3s ease;
+}
+
+.input:focus {
+    border-color: #4CAF50;
+    outline: none;
+}
+
+/* Botões */
+.button,
+.button_formula {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.button:hover {
+    background-color: #45a049;
+}
+
+.button_formula {
+    background-color: #4CAF10;
+    color: white;
+}
+
+.button_formula:hover {
+    background-color: #449f0e;
+}
+
+/* Tabela */
+.table {
+    background-color: white;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.tr {
+    border-bottom: 1px solid #ddd;
+}
+
+.th {
+    background-color: #f2f2f2;
+    border: 1px solid #ccc;
+    padding: 12px;
+    text-align: center;
+}
+
+.td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Imagens */
+.img {
+    width: 90px;
+    height: 80px;
+    border-radius: 4px;
+    object-fit: scale-down;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Texto de aviso */
+.span {
+    color: #c62828;
+    font-weight: bold;
+    font-size: 13px;
+    display: block;
+    text-align: center;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .filtro-horizontal {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .input {
+        width: 100%;
+    }
+
+    .button,
+    .button_formula {
+        width: 100%;
+    }
+}
