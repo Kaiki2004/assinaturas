@@ -1,18 +1,30 @@
-/* Layout geral */
+/* Reset e layout base */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-.container {
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+.lista-container {
     padding: 20px;
     margin: 0 auto;
     max-width: 1200px;
-    font-family: 'Segoe UI', sans-serif;
 }
 
-/* Campo de busca e botões alinhados na horizontal */
+.lista-form {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    width: 80%;
+}
+
+/* Filtro de busca (CPF) */
 .filtro-horizontal {
     display: flex;
     gap: 12px;
@@ -20,14 +32,7 @@
     margin-bottom: 20px;
 }
 
-.button-container {
-    display: flex;
-    flex-direction: row;
-    gap: 22px;
-}
-
-/* Input CPF */
-.input {
+.lista-input {
     flex: 0;
     min-width: 250px;
     padding: 10px;
@@ -37,14 +42,30 @@
     transition: border 0.3s ease;
 }
 
-.input:focus {
+.lista-form h2{
+    font-size: 24px;
+    margin: 20px auto;
+    text-align: center;
+    align-items: center;
+
+
+}
+
+.lista-busca{
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.lista-input:focus {
     border-color: #4CAF50;
     outline: none;
 }
 
 /* Botões */
-.button,
-.button_formula {
+.lista-button,
+.lista-excluir {
     padding: 10px 20px;
     font-size: 14px;
     font-weight: 600;
@@ -54,68 +75,68 @@
     transition: background-color 0.3s ease;
 }
 
-.button {
+.lista-button {
+    flex: 0;
     background-color: #4CAF50;
     color: white;
+    min-width: 250px;
 }
 
-.button:hover {
+.lista-button:hover {
     background-color: #45a049;
 }
 
-.button_formula {
-    background-color: #4CAF10;
+.lista-excluir {
+    background-color: #f44336;
     color: white;
 }
 
-.button_formula:hover {
-    background-color: #449f0e;
+.lista-excluir:hover {
+    background-color: #d32f2f;
+}
+
+/* Formulário */
+.lista-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
 }
 
 /* Tabela */
-.table {
+.lista-table-container {
+    overflow-x: auto;
+}
+
+.lista-table {
     background-color: white;
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
     font-size: 14px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #ddd;
 }
 
-.tr {
-    border-bottom: 1px solid #ddd;
-}
-
-.th {
+.lista-th {
     background-color: #f2f2f2;
-    border: 1px solid #ccc;
     padding: 12px;
+    border: 1px solid #ccc;
     text-align: center;
 }
 
-.td {
-    border: 1px solid #ccc;
+.lista-td {
     padding: 10px;
+    border: 1px solid #ccc;
     text-align: center;
     vertical-align: middle;
 }
 
-/* Imagens */
-.img {
-    width: 90px;
-    height: 80px;
-    border-radius: 4px;
-    object-fit: scale-down;
-    display: block;
-    margin: 0 auto;
-}
-
-/* Texto de aviso */
+/* Aviso de texto (ex: sem assinatura) */
 .span {
     color: #c62828;
     font-weight: bold;
     font-size: 13px;
-    display: block;
     text-align: center;
 }
 
@@ -126,12 +147,12 @@
         align-items: stretch;
     }
 
-    .input {
+    .lista-input {
         width: 100%;
     }
 
-    .button,
-    .button_formula {
+    .lista-button,
+    .lista-excluir {
         width: 100%;
     }
 }

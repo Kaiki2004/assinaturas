@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import './FluxoAssinatura.css';
 
 function FluxoAssinatura() {
 
@@ -304,11 +305,9 @@ function FluxoAssinatura() {
         <div id='conteiner_fotos'>
           <h3 id='titulo'>Bem-vindo, {nome}!</h3>
           <h4>TIRE SUA FOTO</h4>
-          <div id='foto' >
+          <div  >
             <video
               ref={videoRef}
-              width="500"
-              height="400"
               autoPlay
               muted
               playsInline
@@ -319,20 +318,21 @@ function FluxoAssinatura() {
               height={400}
               style={{ display: 'none' }}
             />
-
-            {fotoBase64 && (
-              <div id='fotoPreview'>
-                <img src={fotoBase64} alt="Foto Capturada" width="400"
-                  height="500" />
-              </div>
-            )}
-
-            <div>
-              <div >
-                <button id='tirar_foto' onClick={() => { capturarFoto(); setAssinaturas(true); }}>Capturar Foto</button>
-              </div>
-              <div>
-                {assinaturas && <button id='assinar' onClick={() => setShowModal(true)}>Assinar</button>}
+            <div className='foto-button'>
+              <div className='ajuste-preview-button'>
+                {fotoBase64 && (
+                  <div id='fotoPreview'>
+                    <img src={fotoBase64} alt="Foto Capturada" />
+                  </div>
+                )}
+                <div >
+                  <div >
+                    <button className='tirar_foto' onClick={() => { capturarFoto(); setAssinaturas(true); }}>Capturar Foto</button>
+                  </div>
+                  <div>
+                    {assinaturas && <button className='tirar_foto' onClick={() => setShowModal(true)}>Assinar</button>}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -342,7 +342,7 @@ function FluxoAssinatura() {
             <>
               <div id='showModal'>
                 <div >
-                  <h4 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>ASSINE ABAIXO</h4>
+                  <h4 >ASSINE ABAIXO</h4>
                   <canvas
                     ref={assinaturaCanvas}
                     id='canvas'

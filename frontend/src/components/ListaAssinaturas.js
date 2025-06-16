@@ -174,8 +174,9 @@ function ListaAssinaturas() {
     <div>
       <Navbar />
       <div className="container">
-        <h2>Lista de Assinaturas</h2>
+
         <div className="filtro-horizontal">
+          <h2>Buscar pessoas:</h2>
           <input
             type="text"
             placeholder="Buscar por CPF..."
@@ -183,6 +184,10 @@ function ListaAssinaturas() {
             onChange={(e) => setFiltroCpf(e.target.value)}
             className="input"
           />
+
+        </div>
+
+        <div className='button-container'>
           <button onClick={exportarPDF} className="button">
             Rizatti
           </button>

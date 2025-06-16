@@ -1,0 +1,269 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+#container {
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Segoe UI', sans-serif;
+    align-items: center;
+    gap: 20px;
+}
+
+#cpf {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+#cpf input {
+    padding: 10px;
+    font-size: 16px;
+    width: 100%;
+    max-width: 300px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#cpf button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+}
+
+#conteiner_fotos {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+video {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+#fotoPreview img {
+    border-radius: 5px;
+}
+
+.tirar_foto,
+#limpar,
+#showModal button {
+    margin: 5px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+}
+
+.ajuste-preview-button {
+    display: flex;
+    flex-direction: row;
+    align-items: top;
+    gap: 10px;
+}
+
+.foto-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.tirar_foto:hover,
+#limpar:hover,
+#showModal button:hover {
+    background-color: #218838;
+}
+
+#showModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+#showModal>div {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 90%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#canvas {
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    cursor: crosshair;
+}
+
+#buttonsRow {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+#voltar {
+    align-self: flex-start;
+    text-decoration: none;
+    color: #007bff;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+#titulo {
+    font-size: 24px;
+    color: #333;
+}
+
+.assinatura-titulo {
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+
+@media (max-width: 768px) {
+    #container {
+        padding: 10px;
+    }
+
+    #cpf input,
+    #cpf button,
+    .tirar_foto,
+    #limpar,
+    #showModal button {
+        width: 100%;
+        max-width: 100%;
+        font-size: 14px;
+    }
+
+    #canvas {
+        width: 100%;
+        height: auto;
+    }
+
+    #buttonsRow {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    #buttonsRow button {
+        width: 100%;
+    }
+
+    
+
+    #fotoPreview img {
+        width: 100%;
+        height: auto;
+    }
+
+    .foto-button {
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #showModal>div {
+        width: 90%;
+        padding: 15px;
+    }
+
+    #titulo {
+        font-size: 20px;
+    }
+
+    .assinatura-titulo {
+        font-size: 16px;
+    }
+
+    #voltar {
+        font-size: 14px;
+        padding: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    #container {
+        padding: 8px;
+        gap: 16px;
+    }
+
+    #cpf input,
+    #cpf button,
+    .tirar_foto,
+    #limpar,
+    #showModal button {
+        font-size: 13px;
+        padding: 8px;
+    }
+
+    #fotoPreview img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    #canvas {
+        width: 100%;
+        height: 150px;
+    }
+
+    #showModal>div {
+        padding: 10px;
+    }
+
+    #buttonsRow {
+        gap: 8px;
+    }
+
+    #titulo {
+        font-size: 18px;
+    }
+
+    .assinatura-titulo {
+        font-size: 15px;
+    }
+
+    #voltar {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    video {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+    }
+
+}
