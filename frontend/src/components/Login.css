@@ -53,6 +53,7 @@
     font-size: 14px;
     border: 1px solid #ccc;
     border-radius: 4px;
+    margin: 5px 0px;
 }
 
 /* Botão de login */
@@ -88,5 +89,6 @@
     padding: 10px;
     cursor: pointer;
     text-decoration: none;
+    font-size: 14px;
 }
 

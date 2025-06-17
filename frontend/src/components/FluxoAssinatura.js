@@ -277,12 +277,12 @@ function FluxoAssinatura() {
 
   return (
     <div id="container" >
-      <a href='/' id='voltar' onClick={handleSair}>Voltar</a>
+
       {!autorizado ? (
         <div id='cpf'>
+          <a href='/' id='voltar-cpf' onClick={handleSair}>Voltar</a>
           <h2>Digite seu CPF</h2>
           <input
-
             type="text"
             value={cpf}
             onChange={(e) => setCpf(e.target.value)}

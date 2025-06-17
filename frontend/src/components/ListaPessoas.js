@@ -79,7 +79,7 @@ const ListaPessoas = () => {
             placeholder="Buscar por CPF..."
             value={filtroCpf}
             onChange={(e) => setFiltroCpf(e.target.value)}
-            className="lista-input"
+            className="input_cpf"
           />
         </div>
 

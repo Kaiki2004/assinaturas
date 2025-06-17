@@ -25,88 +25,14 @@ function ListaAssinaturas() {
     assinatura.CPF.toLowerCase().includes(filtroCpf.toLowerCase())
   );
 
-  const exportarPDF = () => {
+  const exportarPDFGerado = (empresa, cnpj, arquivoNome) => {
     const doc = new jsPDF('p', 'pt', 'a4');
     const margin = 20;
     let y = margin;
     const middle = doc.internal.pageSize.getWidth() / 2;
 
-    const empresa = 'RIZATTI & CIA LTDA';
     const titulo = 'LISTA CESTA BÁSICA';
-    const descricao = `Recebida da empresa Rizatti e Cia Ltda., cadastrada no CNPJ 47.974.944/0001-23, uma (01) cesta básica, conforme cláusula décima primeira da Convenção Coletiva do Sindicato dos Condutores de Veículos de Franca-SP.`;
-
-    // Cabeçalho formatado
-    doc.setFontSize(16);
-    doc.text(titulo, middle, y, { align: 'center' });
-    y += 30;
-
-    const textoQuebrado = doc.splitTextToSize(descricao, 500);
-    doc.setFontSize(12);
-    doc.text(textoQuebrado, middle, y, { align: 'center' });
-    y += textoQuebrado.length * 14 + 20;
-
-    const assinaturasEmpresa = assinaturasFiltradas.filter(
-      (a) => a.Empresa === empresa
-    );
-
-    const tableBody = assinaturasEmpresa.map(({ Nome, CPF, Data, Empresa, Matricula }) => [
-      { content: Nome || '-', styles: { valign: 'middle' } },
-      { content: Matricula || '-', styles: { valign: 'middle' } },
-      { content: CPF || '-', styles: { valign: 'middle' } },
-      { content: Empresa || '-', styles: { valign: 'middle' } },
-      { content: Data || '-', styles: { valign: 'middle' } },
-      { content: '', styles: { cellWidth: 80, minCellHeight: 50 } },
-      { content: '', styles: { cellWidth: 80, minCellHeight: 50 } },
-    ]);
-
-    autoTable(doc, {
-      head: [['Nome', 'Matrícula', 'CPF', 'Empresa', 'Data', 'Assinatura', 'Foto']],
-      body: tableBody,
-      startY: y,
-      theme: 'grid',
-      styles: { fontSize: 10, cellPadding: 5 },
-      didDrawCell: function (data) {
-        if (data.section !== 'body') return;
-
-        const rowIndex = data.row.index;
-        const colIndex = data.column.index;
-        const rowData = assinaturasEmpresa[rowIndex];
-
-        try {
-          if (colIndex === 5) {
-            if (rowData.Assinatura && rowData.Assinatura !== 'Não assinado') {
-              doc.addImage(rowData.Assinatura, 'PNG', data.cell.x + 2, data.cell.y + 2, 70, 40);
-            } else {
-              doc.text('Não assinado', data.cell.x + 5, data.cell.y + 20);
-            }
-          }
-
-          if (colIndex === 6) {
-            if (rowData.Foto && rowData.Foto.startsWith('data:image')) {
-              doc.addImage(rowData.Foto, 'PNG', data.cell.x + 2, data.cell.y + 2, 70, 90);
-            } else {
-              doc.text('Sem foto', data.cell.x + 5, data.cell.y + 20);
-            }
-          }
-        } catch (error) {
-          console.warn(`Erro ao renderizar imagem na linha ${rowIndex}, coluna ${colIndex}:`, error);
-        }
-      },
-    });
-
-    doc.save('Lista_Cestas_Rizatti.pdf');
-  };
-
-
-  const exportarPDF_formula = () => {
-    const doc = new jsPDF('p', 'pt', 'a4');
-    const margin = 20;
-    let y = margin;
-    const middle = doc.internal.pageSize.getWidth() / 2;
-
-    const empresa = 'Formulaexpress';
-    const titulo = 'LISTA CESTA BÁSICA';
-    const descricao = `Recebida da empresa Formulaexpress Comércio de Bebidas Ltda., cadastrada no CNPJ 36.666.191/0001-23, uma (01) cesta básica, conforme cláusula décima primeira da Convenção Coletiva do Sindicato dos Condutores de Veículos de Franca-SP.`;
+    const descricao = `Recebida da empresa ${empresa}, cadastrada no CNPJ ${cnpj}, uma (01) cesta básica no mês de ${new Date().toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}, conforme cláusula décima primeira da Convenção Coletiva do Sindicato dos Condutores de Veículos de Franca-SP.`;
 
     // Título e Descrição Centralizados
     doc.setFontSize(16);
@@ -167,14 +93,22 @@ function ListaAssinaturas() {
       },
     });
 
-    doc.save('Lista_Cestas_Formula.pdf');
+    doc.save(arquivoNome);
+  };
+
+  // Funções específicas para exportação dos PDFs
+  const exportarPDF_Rizatti = () => {
+    exportarPDFGerado('RIZATTI & CIA LTDA', '47.974.944/0001-23', 'Lista_Cestas_Rizatti.pdf');
+  };
+
+  const exportarPDF_Formulaexpress = () => {
+    exportarPDFGerado('Formulaexpress', '36.666.191/0001-23', 'Lista_Cestas_Formula.pdf');
   };
 
   return (
     <div>
       <Navbar />
       <div className="container">
-
         <div className="filtro-horizontal">
           <h2>Buscar pessoas:</h2>
           <input
@@ -182,16 +116,15 @@ function ListaAssinaturas() {
             placeholder="Buscar por CPF..."
             value={filtroCpf}
             onChange={(e) => setFiltroCpf(e.target.value)}
-            className="input"
+            className="input_cpf"
           />
-
         </div>
 
-        <div className='button-container'>
-          <button onClick={exportarPDF} className="button">
+        <div className="button-container">
+          <button onClick={exportarPDF_Rizatti} className="button">
             Rizatti
           </button>
-          <button onClick={exportarPDF_formula} className="button_formula">
+          <button onClick={exportarPDF_Formulaexpress} className="button_formula">
             FormulaExpress
           </button>
         </div>

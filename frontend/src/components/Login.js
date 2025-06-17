@@ -25,26 +25,28 @@ function Login() {
 
   return (
     <div id='container'>
-      <div className='login-container'>
+      <div >
         <button  onClick={() => navigate('/')} id="voltar">Voltar</button>
-        <h2 style={{ margin: '20px' }}>Login</h2>
-        <form onSubmit={handleLogin} className="login-form">
-          <input
-            type="text"
-            placeholder="Nome de usuário"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            className="login-input"
-          />
-          <input
-            type="password"
-            placeholder="Senha"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            className="login-input"
-          />
-          <button type="submit" className="login-button">Entrar</button>
-        </form>
+        <div className='login-container'>
+          <h2 >Login</h2>
+          <form onSubmit={handleLogin} className="login-form">
+            <input
+              type="text"
+              placeholder="Nome de usuário"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              className="login-input"
+            />
+            <input
+              type="password"
+              placeholder="Senha"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              className="login-input"
+            />
+            <button type="submit" className="login-button">Entrar</button>
+          </form>
+        </div>
         {erro && <p className="login-erro">{erro}</p>}
       </div>
     </div>

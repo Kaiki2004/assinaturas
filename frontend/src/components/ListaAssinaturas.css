@@ -5,11 +5,19 @@
     box-sizing: border-box;
 }
 
+html, body {
+    height: 100%;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* Container principal */
 .container {
     padding: 20px;
     margin: 0 auto;
     max-width: 1200px;
-    font-family: 'Segoe UI', sans-serif;
+    min-height: 100%; 
+    display: flex;
+    flex-direction: column;
 }
 
 /* Campo de busca e botões alinhados na horizontal */
@@ -18,28 +26,14 @@
     gap: 12px;
     align-items: center;
     margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 .button-container {
     display: flex;
-    flex-direction: row;
+    flex-wrap: wrap;
     gap: 22px;
-}
-
-/* Input CPF */
-.input {
-    flex: 0;
-    min-width: 250px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 16px;
-    transition: border 0.3s ease;
-}
-
-.input:focus {
-    border-color: #4CAF50;
-    outline: none;
+    justify-content: left;
 }
 
 /* Botões */
@@ -52,6 +46,7 @@
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    width: 20%;
 }
 
 .button {
@@ -73,6 +68,11 @@
 }
 
 /* Tabela */
+.table-container {
+    width: 100%;
+    overflow-x: auto; /* Permite a rolagem horizontal se necessário */
+}
+
 .table {
     background-color: white;
     width: 100%;
@@ -91,6 +91,7 @@
     border: 1px solid #ccc;
     padding: 12px;
     text-align: center;
+    min-width: 120px; /* Garante que as colunas não fiquem muito estreitas */
 }
 
 .td {
@@ -98,12 +99,14 @@
     padding: 10px;
     text-align: center;
     vertical-align: middle;
+    min-width: 120px; /* Garante que as células não fiquem muito pequenas */
 }
 
 /* Imagens */
 .img {
-    width: 90px;
-    height: 80px;
+    width: 100%;
+    max-width: 90px;
+    height: auto;
     border-radius: 4px;
     object-fit: scale-down;
     display: block;
@@ -119,8 +122,12 @@
     text-align: center;
 }
 
-/* Responsivo */
+/* Responsividade */
 @media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+
     .filtro-horizontal {
         flex-direction: column;
         align-items: stretch;
@@ -133,5 +140,36 @@
     .button,
     .button_formula {
         width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .table {
+        font-size: 12px;
+    }
+
+    .th, .td {
+        padding: 8px;
+    }
+}
+
+/* Para telas menores que 480px */
+@media (max-width: 480px) {
+    .container {
+        padding: 5px;
+    }
+
+    .input {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .button,
+    .button_formula {
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+
+    .table {
+        font-size: 12px;
     }
 }

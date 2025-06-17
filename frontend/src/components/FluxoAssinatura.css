@@ -131,12 +131,16 @@ video {
     margin-top: 10px;
 }
 
-#voltar {
-    align-self: flex-start;
+#voltar-cpf {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: none;
+    border: none;
+    color: black;
+    padding: 10px;
+    cursor: pointer;
     text-decoration: none;
-    color: #007bff;
-    margin-bottom: 10px;
-    font-weight: bold;
 }
 
 #titulo {
