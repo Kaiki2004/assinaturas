@@ -172,7 +172,217 @@ app.post('/api/pessoas', (req, res) => {
   res.status(201).json({ message: 'Pessoa adicionada!' });
 });
 
-// ...continua com comentários para PUT, DELETE, etc.
+/**
+ * @swagger
+ * /api/pessoas/{id}:
+ *   put:
+ *     summary: Atualiza uma pessoa existente
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:
+ *                 type: string
+ *               cpf:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Pessoa atualizada
+ *       400:
+ *         description: CPF inválido
+ *       404:
+ *         description: Pessoa não encontrada
+ */
+app.put('/api/pessoas/:id', (req, res) => {
+  const { id } = req.params;
+  const { nome, cpf } = req.body;
+
+  if (!validarCPF(cpf)) return res.status(400).json({ error: 'CPF inválido.' });
+
+  const pessoa = pessoas.find(p => p.id == id);
+  if (!pessoa) return res.status(404).json({ error: 'Pessoa não encontrada.' });
+
+  pessoa.nome = nome;
+  pessoa.cpf = cpf;
+
+  res.json({ message: 'Pessoa atualizada!' });
+});
+
+/**
+ * @swagger
+ * /api/pessoas/{id}:
+ *   delete:
+ *     summary: Remove uma pessoa pelo ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Pessoa deletada
+ *       404:
+ *         description: Pessoa não encontrada
+ */
+app.delete('/api/pessoas/:id', (req, res) => {
+  const index = pessoas.findIndex(p => p.id == req.params.id);
+  if (index === -1) return res.status(404).json({ error: 'Pessoa não encontrada.' });
+  pessoas.splice(index, 1);
+  res.json({ message: 'Pessoa deletada!' });
+});
+
+/**
+ * @swagger
+ * /api/validar-cpf:
+ *   post:
+ *     summary: Verifica se o CPF existe e se houve assinatura recente
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cpf:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Dados de validação
+ *       404:
+ *         description: CPF não encontrado
+ */
+app.post('/api/validar-cpf', (req, res) => {
+  const { cpf } = req.body;
+  const pessoa = pessoas.find(p => p.cpf === cpf);
+  if (!pessoa) return res.status(404).json({ error: 'CPF não encontrado.' });
+
+  const ultimaAssinatura = assinaturas.find(a =>
+    a.cpf === cpf &&
+    new Date(a.data) >= new Date(Date.now() - 1000 * 60 * 60 * 24 * 20)
+  );
+
+  res.json({ nome: pessoa.nome, assinouRecentemente: !!ultimaAssinatura });
+});
+
+/**
+ * @swagger
+ * /api/validar-bloqueio-20:
+ *   post:
+ *     summary: Verifica se o CPF está bloqueado
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               cpf:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Status de bloqueio
+ *       404:
+ *         description: CPF não encontrado
+ */
+app.post('/api/validar-bloqueio-20', (req, res) => {
+  const { cpf } = req.body;
+  const pessoa = pessoas.find(p => p.cpf === cpf);
+  if (!pessoa) return res.status(404).json({ error: 'CPF não encontrado.' });
+
+  const bloqueio20 = pessoa.status === 'BLOQUEADO';
+  res.json({ bloqueio20 });
+});
+
+/**
+ * @swagger
+ * /api/registrar-assinatura:
+ *   post:
+ *     summary: Registra uma nova assinatura
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [cpf, foto, assinatura]
+ *             properties:
+ *               cpf:
+ *                 type: string
+ *               foto:
+ *                 type: string
+ *               assinatura:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Assinatura registrada
+ *       400:
+ *         description: Já assinou recentemente
+ *       404:
+ *         description: CPF não encontrado
+ */
+app.post('/api/registrar-assinatura', (req, res) => {
+  const { cpf, foto, assinatura } = req.body;
+  const pessoa = pessoas.find(p => p.cpf === cpf);
+  if (!pessoa) return res.status(404).json({ error: 'CPF não encontrado.' });
+
+  const jaAssinou = assinaturas.find(a =>
+    a.cpf === cpf &&
+    new Date(a.data) >= new Date(Date.now() - 1000 * 60 * 60 * 24 * 20)
+  );
+  if (jaAssinou) return res.status(400).json({ error: 'Já assinou nos últimos 20 dias.' });
+
+  assinaturas.push({
+    nome: pessoa.nome,
+    cpf,
+    foto,
+    assinatura,
+    data: new Date()
+  });
+
+  res.status(201).json({ message: 'Assinatura registrada com sucesso!' });
+});
+
+/**
+ * @swagger
+ * /api/assinaturas:
+ *   get:
+ *     summary: Lista de assinaturas com dados completos
+ *     responses:
+ *       200:
+ *         description: Lista de assinaturas
+ */
+app.get('/api/assinaturas', (req, res) => {
+  const lista = pessoas.map(p => {
+    const assinatura = assinaturas.find(a => a.cpf === p.cpf);
+    const dataAssinatura = assinatura ? new Date(assinatura.data) : null;
+    const dataFormatada = dataAssinatura
+      ? dataAssinatura.toLocaleString('pt-BR')
+      : 'Data não registrada';
+    return {
+      Id: p.id,
+      Nome: p.nome,
+      CPF: p.cpf,
+      Matricula: p.matricula,
+      Empresa: p.empresa,
+      Status: p.status,
+      Foto: assinatura?.foto || null,
+      Assinatura: assinatura?.assinatura || 'Não assinado',
+      Data: dataFormatada
+    };
+  });
+
+  res.json({ data: lista });
+});
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
